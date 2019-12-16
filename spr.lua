@@ -95,7 +95,7 @@ local LinearSpring = {} do
 				f = frequency,
 				g = linearPos,
 				p = linearPos,
-				v = linearPos*0,
+				v = table.create(#linearPos, 0),
 				typedat = typedat,
 				rawTarget = rawTarget,
 			},
@@ -129,10 +129,10 @@ local LinearSpring = {} do
 			local c2 = q - w*f
 			local c3 = w*f*f
 
-			for i = 1, #p do
-				local o = p[i] - g[i]
-				p[i] = o*c0 + v[i]*w + g[i]
-				v[i] = v[i]*c2 - o*c3
+			for idx = 1, #p do
+				local o = p[idx] - g[idx]
+				p[idx] = o*c0 + v[idx]*w + g[idx]
+				v[idx] = v[idx]*c2 - o*c3
 			end
 
 		elseif d < 1 then -- underdamped
@@ -146,8 +146,11 @@ local LinearSpring = {} do
 			local y = j/(f*c)
 			local z = j/c
 
-			self.p = (o*(i + z*d) + v*y)*q + g
-			self.v = (v*(i - z*d) - o*(z*f))*q
+			for idx = 1, #p do
+				local o = p[idx] - g[idx]
+				p[idx] = (o*(i + z*d) + v[idx]*y)*q + g[idx]
+				v[idx] = (v[idx]*(i - z*d) - o*(z*f))*q
+			end
 
 		else -- overdamped
 			local o = p - g
