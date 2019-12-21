@@ -56,43 +56,6 @@ local function distanceSq(v0, v1)
 	return out
 end
 
--- an array of values defining basic arithmetic ops
-local LinearValue = {} do
-	LinearValue.__index = LinearValue
-
-	function LinearValue:__add(rhs)
-		local out = setmetatable({unpack(self)}, LinearValue)
-		for i = 1, #out do
-			out[i] = out[i] + rhs[i]
-		end
-		return out
-	end
-
-	function LinearValue:__sub(rhs)
-		local out = setmetatable({unpack(self)}, LinearValue)
-		for i = 1, #out do
-			out[i] = out[i] - rhs[i] 
-		end
-		return out
-	end
-
-	function LinearValue:__mul(rhs)
-		local out = setmetatable({unpack(self)}, LinearValue)
-		for i = 1, #out do
-			out[i] = out[i]*rhs
-		end
-		return out
-	end
-
-	function LinearValue:__div(rhs)
-		local out = setmetatable({unpack(self)}, LinearValue)
-		for i = 1, #out do
-			out[i] = out[i]/rhs
-		end
-		return out
-	end
-end
-
 local LinearSpring = {} do
 	LinearSpring.__index = LinearSpring
 	
@@ -149,7 +112,6 @@ local LinearSpring = {} do
 			end
 
 		elseif d < 1 then -- underdamped
-			local o = p - g
 			local q = exp(-d*f*dt)
 			local c = sqrt(1 - d*d)
 
@@ -196,7 +158,7 @@ local typeMetadata = setmetatable(
 			springType = LinearSpring.new,
 
 			toIntermediate = function(value)
-				return setmetatable({value}, LinearValue)
+				return {value}
 			end,
 
 			fromIntermediate = function(value)
@@ -208,7 +170,7 @@ local typeMetadata = setmetatable(
 			springType = LinearSpring.new,
 
 			toIntermediate = function(value)
-				return setmetatable({value.Min, value.Max}, LinearValue)
+				return {value.Min, value.Max}
 			end,
 
 			fromIntermediate = function(value)
@@ -220,7 +182,7 @@ local typeMetadata = setmetatable(
 			springType = LinearSpring.new,
 
 			toIntermediate = function(value)
-				return setmetatable({value.Scale, value.Offset}, LinearValue)
+				return {value.Scale, value.Offset}
 			end,
 
 			fromIntermediate = function(value)
@@ -234,7 +196,7 @@ local typeMetadata = setmetatable(
 			toIntermediate = function(value)
 				local x = value.X
 				local y = value.Y
-				return setmetatable({x.Scale, x.Offset, y.Scale, y.Offset}, LinearValue)
+				return {x.Scale, x.Offset, y.Scale, y.Offset}
 			end,
 
 			fromIntermediate = function(value)
@@ -246,7 +208,7 @@ local typeMetadata = setmetatable(
 			springType = LinearSpring.new,
 
 			toIntermediate = function(value)
-				return setmetatable({value.X, value.Y}, LinearValue)
+				return {value.X, value.Y}
 			end,
 
 			fromIntermediate = function(value)
@@ -258,7 +220,7 @@ local typeMetadata = setmetatable(
 			springType = LinearSpring.new,
 
 			toIntermediate = function(value)
-				return setmetatable({value.X, value.Y, value.Z}, LinearValue)
+				return {value.X, value.Y, value.Z}
 			end,
 
 			fromIntermediate = function(value)
@@ -292,7 +254,7 @@ local typeMetadata = setmetatable(
 					v = -0.46832*l
 				end
 
-				return setmetatable({l, u, v}, LinearValue)
+				return {l, u, v}
 			end,
 
 			fromIntermediate = function(value)
