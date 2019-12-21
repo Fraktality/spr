@@ -39,10 +39,19 @@ local cos = math.cos
 local min = math.min
 local sqrt = math.sqrt
 
-local function normSq(t)
+local function magnitudeSq(v)
 	local out = 0
-	for i = 1, #t do
-		out = out + t[i]*t[i]
+	for i = 1, #v do
+		out = out + v[i]*v[i]
+	end
+	return out
+end
+
+local function distanceSq(v0, v1)
+	local out = 0
+	for idx = 1, #v0 do
+		local d = v1[idx] - v0[idx]
+		out = out + d*d
 	end
 	return out
 end
@@ -109,9 +118,13 @@ local LinearSpring = {} do
 	end
 
 	function LinearSpring:canSleep()
-		local v = normSq(self.v)
-		local o = normSq(self.p - self.g)
-		return v < SLEEP_VELOCITY_SQ_LIMIT and o < SLEEP_OFFSET_SQ_LIMIT
+		if magnitudeSq(self.v) > SLEEP_VELOCITY_SQ_LIMIT then
+			return false
+		end
+		if distanceSq(self.p, self.g) > SLEEP_OFFSET_SQ_LIMIT then
+			return false
+		end
+		return true
 	end
 
 	function LinearSpring:step(dt)
