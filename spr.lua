@@ -166,20 +166,22 @@ local LinearSpring = {} do
 			end
 
 		else -- overdamped
-			local o = p - g
 			local c = sqrt(d*d - 1)
 
 			local r1 = -f*(d - c)
 			local r2 = -f*(d + c)
 			
-			local co2 = (v - o*r1)/(2*f*c)
-			local co1 = o - co2
-
-			local e1 = co1*exp(r1*dt)
-			local e2 = co2*exp(r2*dt)
-
-			self.p = e1 + e2 + g
-			self.v = e1*r1 + e2*r2
+			local ec1 = exp(r1*dt)
+			local ec2 = exp(r2*dt)
+			
+			for idx = 1, #p do
+				local o = p[idx] - g[idx]
+				local co2 = (v[idx] - o*r1)/(2*f*c)
+				local co1 = ec1*(o - co2)
+				
+				p[idx] = co1 + co2*ec2 + g[idx]
+				v[idx] = co1*r1 + co2*ec2*r2
+			end
 		end
 
 		return self.typedat.fromIntermediate(self.p)
