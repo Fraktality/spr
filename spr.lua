@@ -26,7 +26,7 @@
 --
 ---------------------------------------------------------------------
 
-local SLEEP_OFFSET_SQ_LIMIT = 1e-4^2
+local SLEEP_OFFSET_SQ_LIMIT = (1/3840)^2
 local SLEEP_VELOCITY_SQ_LIMIT = 1e-2^2
 
 local RunService = game:GetService("RunService")
@@ -41,8 +41,8 @@ local sqrt = math.sqrt
 
 local function magnitudeSq(v)
 	local out = 0
-	for i = 1, #v do
-		out = out + v[i]*v[i]
+	for idx = 1, #v do
+		out = out + v[idx]*v[idx]
 	end
 	return out
 end
