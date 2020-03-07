@@ -1,7 +1,7 @@
 ---------------------------------------------------------------------
 -- spr: Spring-driven animation library
 --
--- Copyright (c) 2019 Parker Stebbins. All rights reserved.
+-- Copyright (c) 2020 Parker Stebbins. All rights reserved.
 -- Released under the MIT license.
 --
 -- License & docs can be found at https://github.com/Fraktality/spr
@@ -26,8 +26,9 @@
 --
 ---------------------------------------------------------------------
 
-local SLEEP_OFFSET_SQ_LIMIT = (1/3840)^2
-local SLEEP_VELOCITY_SQ_LIMIT = 1e-2^2
+local SLEEP_OFFSET_SQ_LIMIT = (1/3840)^2 -- Square of the offset sleep limit
+local SLEEP_VELOCITY_SQ_LIMIT = 1e-2^2 -- Square of the velocity sleep limit
+local STRICT_TYPES = true -- Assert on parameter and property type mismatch
 
 local RunService = game:GetService("RunService")
 
@@ -58,7 +59,7 @@ end
 
 local LinearSpring = {} do
 	LinearSpring.__index = LinearSpring
-	
+
 	function LinearSpring.new(dampingRatio, frequency, pos, typedat, rawTarget)
 		local linearPos = typedat.toIntermediate(pos)
 		return setmetatable(
@@ -91,8 +92,19 @@ local LinearSpring = {} do
 	end
 
 	function LinearSpring:step(dt)
+		-- Advance the spring simulation by dt seconds.
+		-- Take the damped harmonic oscillator ODE:
+		--    f^2*(X[t] - g) + 2*d*f*X'[t] + X''[t] = 0
+		-- Where X[t] is position at time t, g is target position,
+		-- f is undamped angular frequency, and d is damping ratio.
+		-- Apply constant initial conditions:
+		--    X[0] = p0
+		--    X'[0] = v0
+		-- Solve the IVP to get analytic expressions for X[t] and X'[t].
+		-- The solution takes one of three forms for 0<=d<1, d=1, and d>1
+
 		local d = self.d
-		local f = self.f*2*pi
+		local f = self.f*2*pi -- Hz -> Rad/s
 		local g = self.g
 		local p = self.p
 		local v = self.v
@@ -132,15 +144,15 @@ local LinearSpring = {} do
 
 			local r1 = -f*(d - c)
 			local r2 = -f*(d + c)
-			
+
 			local ec1 = exp(r1*dt)
 			local ec2 = exp(r2*dt)
-			
+
 			for idx = 1, #p do
 				local o = p[idx] - g[idx]
 				local co2 = (v[idx] - o*r1)/(2*f*c)
 				local co1 = ec1*(o - co2)
-				
+
 				p[idx] = co1 + co2*ec2 + g[idx]
 				v[idx] = co1*r1 + co2*ec2*r2
 			end
@@ -150,7 +162,7 @@ local LinearSpring = {} do
 	end
 end
 
--- transforms Roblox types into intermediate types, converting 
+-- transforms Roblox types into intermediate types, converting
 -- between spaces as necessary to preserve perceptual linearity
 local typeMetadata = setmetatable(
 	{
@@ -318,9 +330,36 @@ RunService.Stepped:Connect(function(_, dt)
 	end
 end)
 
+local function assertType(argNum, fnName, expectedType, value)
+	if STRICT_TYPES and typeof(value) ~= expectedType then
+		error(
+			("bad argument #%d to %s (%s expected, got %s)"):format(
+				argNum,
+				fnName,
+				expectedType,
+				typeof(value)
+			),
+			3
+		)
+	end
+end
+
 local spr = {}
 
 function spr.target(instance, dampingRatio, frequency, properties)
+	assertType(1, "spr.target", "Instance", instance)
+	assertType(2, "spr.target", "number", dampingRatio)
+	assertType(3, "spr.target", "number", frequency)
+	assertType(4, "spr.target", "table", properties)
+
+	if dampingRatio < 0 then
+		error("expected damping ratio >= 0", 2)
+	end
+
+	if frequency < 0 then
+		error("expected undamped frequency >= 0", 2)
+	end
+
 	local state = springStates[instance]
 
 	if not state then
@@ -331,11 +370,11 @@ function spr.target(instance, dampingRatio, frequency, properties)
 	for propName, propTarget in pairs(properties) do
 		local propValue = instance[propName]
 
-		if typeof(propTarget) ~= typeof(propValue) then
+		if STRICT_TYPES and typeof(propTarget) ~= typeof(propValue) then
 			error(
-				("type mismatch: %s %s = %s"):format(
-					typeof(propValue),
+				("bad property %s to spr.target (%s expected, got %s)"):format(
 					propName,
+					typeof(propValue),
 					typeof(propTarget)
 				), 2
 			)
@@ -355,6 +394,9 @@ function spr.target(instance, dampingRatio, frequency, properties)
 end
 
 function spr.stop(instance, property)
+	assertType(1, "spr.stop", "Instance", instance)
+	assertType(2, "spr.stop", "string", property)
+
 	if property then
 		local state = springStates[instance]
 		if state then
