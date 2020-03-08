@@ -1,5 +1,5 @@
 ---------------------------------------------------------------------
--- spr: Spring-driven animation library
+-- spr: Spring-driven motion library
 --
 -- Copyright (c) 2020 Parker Stebbins. All rights reserved.
 -- Released under the MIT license.
@@ -23,7 +23,6 @@
 --     string property)
 --
 --     Stops the specified property from animating on an object.
---
 ---------------------------------------------------------------------
 
 local SLEEP_OFFSET_SQ_LIMIT = (1/3840)^2 -- Square of the offset sleep limit
@@ -164,152 +163,153 @@ end
 
 -- transforms Roblox types into intermediate types, converting
 -- between spaces as necessary to preserve perceptual linearity
-local typeMetadata = setmetatable(
-	{
-		number = {
-			springType = LinearSpring.new,
+local typeMetadata = {
+	number = {
+		springType = LinearSpring.new,
 
-			toIntermediate = function(value)
-				return {value}
-			end,
+		toIntermediate = function(value)
+			return {value}
+		end,
 
-			fromIntermediate = function(value)
-				return value[1]
-			end,
-		},
-
-		NumberRange = {
-			springType = LinearSpring.new,
-
-			toIntermediate = function(value)
-				return {value.Min, value.Max}
-			end,
-
-			fromIntermediate = function(value)
-				return NumberRange.new(value[1], value[2])
-			end,
-		},
-
-		UDim = {
-			springType = LinearSpring.new,
-
-			toIntermediate = function(value)
-				return {value.Scale, value.Offset}
-			end,
-
-			fromIntermediate = function(value)
-				return UDim.new(value[1], value[2])
-			end,
-		},
-
-		UDim2 = {
-			springType = LinearSpring.new,
-
-			toIntermediate = function(value)
-				local x = value.X
-				local y = value.Y
-				return {x.Scale, x.Offset, y.Scale, y.Offset}
-			end,
-
-			fromIntermediate = function(value)
-				return UDim2.new(value[1], value[2], value[3], value[4])
-			end,
-		},
-
-		Vector2 = {
-			springType = LinearSpring.new,
-
-			toIntermediate = function(value)
-				return {value.X, value.Y}
-			end,
-
-			fromIntermediate = function(value)
-				return Vector2.new(value[1], value[2])
-			end,
-		},
-
-		Vector3 = {
-			springType = LinearSpring.new,
-
-			toIntermediate = function(value)
-				return {value.X, value.Y, value.Z}
-			end,
-
-			fromIntermediate = function(value)
-				return Vector3.new(value[1], value[2], value[3])
-			end,
-		},
-
-		Color3 = {
-			springType = LinearSpring.new,
-
-			toIntermediate = function(value)
-				-- convert to a variant of CIELUV space with modified L component
-
-				local r, g, b = value.r, value.g, value.b
-
-				r = r < 0.0404482362771076 and r/12.92 or 0.87941546140213*(r + 0.055)^2.4
-				g = g < 0.0404482362771076 and g/12.92 or 0.87941546140213*(g + 0.055)^2.4
-				b = b < 0.0404482362771076 and b/12.92 or 0.87941546140213*(b + 0.055)^2.4
-
-				local x = 0.9257063972951867*r - 0.8333736323779866*g - 0.09209820666085898*b
-				local y = 0.2125862307855956*r + 0.71517030370341085*g + 0.0722004986433362*b
-				local z = 3.6590806972265883*r + 11.4426895800574232*g + 4.1149915024264843*b
-
-				local l = y > 0.008856451679035631 and 116*y^(1/3) - 16 or 903.296296296296*y
-				local u, v
-				if z > 1e-14 then
-					u = l*x/z
-					v = l*(9*y/z - 0.46832)
-				else
-					u = -0.19783*l
-					v = -0.46832*l
-				end
-
-				return {l, u, v}
-			end,
-
-			fromIntermediate = function(value)
-				-- convert to RGB space
-
-				local l = value[1]
-				if l < 0.0197955 then
-					return Color3.new(0, 0, 0)
-				end
-				local u = value[2]/l + 0.19783
-				local v = value[3]/l + 0.46832
-
-				local y = (l + 16)/116
-				y = y > 0.206896551724137931 and y*y*y or 0.12841854934601665*y - 0.01771290335807126
-				local x = y*u/v
-				local z = y*((3 - 0.75*u)/v - 5)
-
-				local r =  7.2914074*x - 1.5372080*y - 0.4986286*z
-				local g = -2.1800940*x + 1.8757561*y + 0.0415175*z
-				local b =  0.1253477*x - 0.2040211*y + 1.0569959*z
-
-				if r < 0 and r < g and r < b then
-					r, g, b = 0, g - r, b - r
-				elseif g < 0 and g < b then
-					r, g, b = r - g, 0, b - g
-				elseif b < 0 then
-					r, g, b = r - b, g - b, 0
-				end
-
-				return Color3.new(
-					min(r < 3.1306684425e-3 and 12.92*r or 1.055*r^(1/2.4) - 0.055, 1),
-					min(g < 3.1306684425e-3 and 12.92*g or 1.055*g^(1/2.4) - 0.055, 1),
-					min(b < 3.1306684425e-3 and 12.92*b or 1.055*b^(1/2.4) - 0.055, 1)
-				)
-			end,
-		},
+		fromIntermediate = function(value)
+			return value[1]
+		end,
 	},
-	{
-		__index = function(_, t)
-			error("unsupported type " .. t, 3)
+
+	NumberRange = {
+		springType = LinearSpring.new,
+
+		toIntermediate = function(value)
+			return {value.Min, value.Max}
+		end,
+
+		fromIntermediate = function(value)
+			return NumberRange.new(value[1], value[2])
+		end,
+	},
+
+	UDim = {
+		springType = LinearSpring.new,
+
+		toIntermediate = function(value)
+			return {value.Scale, value.Offset}
+		end,
+
+		fromIntermediate = function(value)
+			return UDim.new(value[1], value[2])
+		end,
+	},
+
+	UDim2 = {
+		springType = LinearSpring.new,
+
+		toIntermediate = function(value)
+			local x = value.X
+			local y = value.Y
+			return {x.Scale, x.Offset, y.Scale, y.Offset}
+		end,
+
+		fromIntermediate = function(value)
+			return UDim2.new(value[1], value[2], value[3], value[4])
+		end,
+	},
+
+	Vector2 = {
+		springType = LinearSpring.new,
+
+		toIntermediate = function(value)
+			return {value.X, value.Y}
+		end,
+
+		fromIntermediate = function(value)
+			return Vector2.new(value[1], value[2])
+		end,
+	},
+
+	Vector3 = {
+		springType = LinearSpring.new,
+
+		toIntermediate = function(value)
+			return {value.X, value.Y, value.Z}
+		end,
+
+		fromIntermediate = function(value)
+			return Vector3.new(value[1], value[2], value[3])
+		end,
+	},
+
+	Color3 = {
+		springType = LinearSpring.new,
+
+		toIntermediate = function(value)
+			-- convert RGB to a variant of cieluv space
+			local r, g, b = value.r, value.g, value.b
+
+			-- D65 sRGB inverse gamma correction
+			r = r < 0.0404482362771076 and r/12.92 or 0.87941546140213*(r + 0.055)^2.4
+			g = g < 0.0404482362771076 and g/12.92 or 0.87941546140213*(g + 0.055)^2.4
+			b = b < 0.0404482362771076 and b/12.92 or 0.87941546140213*(b + 0.055)^2.4
+
+			-- sRGB -> xyz
+			local x = 0.9257063972951867*r - 0.8333736323779866*g - 0.09209820666085898*b
+			local y = 0.2125862307855956*r + 0.71517030370341085*g + 0.0722004986433362*b
+			local z = 3.6590806972265883*r + 11.4426895800574232*g + 4.1149915024264843*b
+
+			-- xyz -> modified cieluv
+			local l = y > 0.008856451679035631 and 116*y^(1/3) - 16 or 903.296296296296*y
+
+			local u, v
+			if z > 1e-14 then
+				u = l*x/z
+				v = l*(9*y/z - 0.46832)
+			else
+				u = -0.19783*l
+				v = -0.46832*l
+			end
+
+			return {l, u, v}
+		end,
+
+		fromIntermediate = function(value)
+			-- convert back from modified cieluv to rgb space
+
+			local l = value[1]
+			if l < 0.0197955 then
+				return Color3.new(0, 0, 0)
+			end
+			local u = value[2]/l + 0.19783
+			local v = value[3]/l + 0.46832
+
+			-- cieluv -> xyz
+			local y = (l + 16)/116
+			y = y > 0.206896551724137931 and y*y*y or 0.12841854934601665*y - 0.01771290335807126
+			local x = y*u/v
+			local z = y*((3 - 0.75*u)/v - 5)
+
+			-- xyz -> D65 sRGB
+			local r =  7.2914074*x - 1.5372080*y - 0.4986286*z
+			local g = -2.1800940*x + 1.8757561*y + 0.0415175*z
+			local b =  0.1253477*x - 0.2040211*y + 1.0569959*z
+
+			-- clamp minimum sRGB component
+			if r < 0 and r < g and r < b then
+				r, g, b = 0, g - r, b - r
+			elseif g < 0 and g < b then
+				r, g, b = r - g, 0, b - g
+			elseif b < 0 then
+				r, g, b = r - b, g - b, 0
+			end
+
+			-- gamma correction from D65
+			-- clamp to avoid undesirable overflow wrapping behavior on certain properties (e.g. BasePart.Color)
+			return Color3.new(
+				min(r < 3.1306684425e-3 and 12.92*r or 1.055*r^(1/2.4) - 0.055, 1),
+				min(g < 3.1306684425e-3 and 12.92*g or 1.055*g^(1/2.4) - 0.055, 1),
+				min(b < 3.1306684425e-3 and 12.92*b or 1.055*b^(1/2.4) - 0.055, 1)
+			)
 		end,
 	}
-)
+}
 
 local springStates = {} -- {[instance] = {[property] = spring}
 
@@ -353,11 +353,11 @@ function spr.target(instance, dampingRatio, frequency, properties)
 	assertType(4, "spr.target", "table", properties)
 
 	if dampingRatio < 0 then
-		error("expected damping ratio >= 0", 2)
+		error(("expected damping ratio >= 0; got %.2f"):format(dampingRatio), 2)
 	end
 
 	if frequency < 0 then
-		error("expected undamped frequency >= 0", 2)
+		error(("expected undamped frequency >= 0; got %.2f"):format(frequency), 2)
 	end
 
 	local state = springStates[instance]
@@ -383,6 +383,11 @@ function spr.target(instance, dampingRatio, frequency, properties)
 		local spring = state[propName]
 		if not spring then
 			local md = typeMetadata[typeof(propTarget)]
+
+			if not md then
+				error("unsupported type: " .. typeof(propTarget), 2)
+			end
+
 			spring = md.springType(dampingRatio, frequency, propValue, md, propTarget)
 			state[propName] = spring
 		end
