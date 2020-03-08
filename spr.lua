@@ -59,6 +59,8 @@ end
 local LinearSpring = {} do
 	LinearSpring.__index = LinearSpring
 
+	local EPS = 1e-5 -- used for stability checks around pathological frequency/damping values
+
 	function LinearSpring.new(dampingRatio, frequency, pos, typedat, rawTarget)
 		local linearPos = typedat.toIntermediate(pos)
 		return setmetatable(
@@ -129,8 +131,40 @@ local LinearSpring = {} do
 			local i = cos(dt*f*c)
 			local j = sin(dt*f*c)
 
-			local y = j/(f*c)
-			local z = j/c
+			-- Damping ratios approaching 1 can cause division by very small numbers.
+			-- To mitigate that, group terms around z=j/c and find an approximation for z.
+			-- Start with the definition of z:
+			--    z = sin(dt*f*c)/c
+			-- Substitute a=dt*f:
+			--    z = sin(a*c)/c
+			-- Take the Maclaurin expansion of z with respect to c:
+			--    z = a - (a^3*c^2)/6 + (a^5*c^4)/120 + O(c^6)
+			--    z ≈ a - (a^3*c^2)/6 + (a^5*c^4)/120
+			-- Rewrite in Horner form:
+			--    z ≈ a + ((a*a)*(c*c)*(c*c)/20 - c*c)*(a*a*a)/6
+
+			local z
+			if c > EPS then
+				z = j/c
+			else
+				local a = dt*f
+				z = a + ((a*a)*(c*c)*(c*c)/20 - c*c)*(a*a*a)/6
+			end
+
+			-- Frequencies approaching 0 present a similar problem.
+			-- We want an approximation for y as f approaches 0, where:
+			--    y = sin(dt*f*c)/(f*c)
+			-- Substitute b=dt*c:
+			--    y = sin(b*c)/b
+			-- Now reapply the process from z.
+
+			local y
+			if f*c > EPS then
+				y = j/(f*c)
+			else
+				local b = f*c
+				y = dt + ((dt*dt)*(b*b)*(b*b)/20 - b*b)*(dt*dt*dt)/6
+			end
 
 			for idx = 1, #p do
 				local o = p[idx] - g[idx]
