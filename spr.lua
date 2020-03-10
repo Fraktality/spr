@@ -70,22 +70,22 @@ local tableLock do
 		error(("writing key %q to locked table"):format(tostring(k)), 2)
 	end
 
-	local WRITE_LOCK = {
+	local RW_LOCK = {
 		__index = invalidRead,
 		__newindex = invalidWrite,
 	}
 
 	function tableLock(tbl)
-		local ud = newproxy(true)
-		local mt = getmetatable(ud)
+		setmetatable(tbl, RW_LOCK)
 
-		mt.__index = tbl
-		mt.__newindex = invalidWrite
-		mt.__metatable = "The metatable is locked"
-
-		setmetatable(tbl, WRITE_LOCK)
-
-		return ud
+		return setmetatable(
+			{},
+			{
+				__index = tbl,
+				__newindex = invalidWrite,
+				__metatable = "The metatable is locked",
+			}
+		)
 	end
 end
 
