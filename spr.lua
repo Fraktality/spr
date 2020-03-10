@@ -386,11 +386,11 @@ function spr.target(instance, dampingRatio, frequency, properties)
 	assertType(3, "spr.target", "number", frequency)
 	assertType(4, "spr.target", "table", properties)
 
-	if dampingRatio < 0 then
+	if dampingRatio ~= dampingRatio or dampingRatio < 0 then
 		error(("expected damping ratio >= 0; got %.2f"):format(dampingRatio), 2)
 	end
 
-	if frequency < 0 then
+	if frequency ~= frequency or frequency < 0 then
 		error(("expected undamped frequency >= 0; got %.2f"):format(frequency), 2)
 	end
 
