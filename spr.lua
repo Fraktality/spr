@@ -56,6 +56,37 @@ local function distanceSq(v0, v1)
 	return out
 end
 
+-- create a proxy object for a table that prevents reading
+-- empty keys, writing keys, and inspecting the metatable
+local tableLock do
+	local function invalidRead(_, k)
+		error(("reading nonexistent element %q from locked table"):format(tostring(k)), 2)
+	end
+
+	local function invalidWrite(_, k)
+		error(("writing key %q to locked table"):format(tostring(k)), 2)
+	end
+
+	local WRITE_LOCK = {
+		__index = invalidRead,
+		__newindex = invalidWrite,
+	}
+
+	function tableLock(tbl)
+		local ud = newproxy(true)
+		local mt = getmetatable(ud)
+
+		mt.__index = tbl
+		mt.__newindex = invalidWrite
+		mt.__metatable = "The metatable is locked"
+
+		setmetatable(tbl, WRITE_LOCK)
+
+		return ud
+	end
+end
+
+-- spring for an array of linear values
 local LinearSpring = {} do
 	LinearSpring.__index = LinearSpring
 
@@ -446,4 +477,4 @@ function spr.stop(instance, property)
 	end
 end
 
-return spr
+return tableLock(spr)
