@@ -1,5 +1,5 @@
 ---------------------------------------------------------------------
--- spr: Spring-driven motion library
+-- spr - Spring-driven motion library
 --
 -- Copyright (c) 2020 Parker Stebbins. All rights reserved.
 -- Released under the MIT license.
@@ -32,7 +32,6 @@ local STRICT_TYPES = true -- Assert on parameter and property type mismatch
 local RunService = game:GetService("RunService")
 
 local pi = math.pi
-local abs = math.abs
 local exp = math.exp
 local sin = math.sin
 local cos = math.cos
@@ -41,18 +40,22 @@ local sqrt = math.sqrt
 
 local function magnitudeSq(v)
 	local out = 0
+
 	for idx = 1, #v do
 		out = out + v[idx]*v[idx]
 	end
+
 	return out
 end
 
 local function distanceSq(v0, v1)
 	local out = 0
+
 	for idx = 1, #v0 do
 		local d = v1[idx] - v0[idx]
 		out = out + d*d
 	end
+
 	return out
 end
 
@@ -117,9 +120,11 @@ local LinearSpring = {} do
 		if magnitudeSq(self.v) > SLEEP_VELOCITY_SQ_LIMIT then
 			return false
 		end
+
 		if distanceSq(self.p, self.g) > SLEEP_OFFSET_SQ_LIMIT then
 			return false
 		end
+
 		return true
 	end
 
