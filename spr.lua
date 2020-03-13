@@ -28,6 +28,7 @@
 local SLEEP_OFFSET_SQ_LIMIT = (1/3840)^2 -- Square of the offset sleep limit
 local SLEEP_VELOCITY_SQ_LIMIT = 1e-2^2 -- Square of the velocity sleep limit
 local STRICT_TYPES = true -- Assert on parameter and property type mismatch
+local STRICT_API_ACCESS = false -- Lock down the API table to prevent writes & empty reads
 
 local RunService = game:GetService("RunService")
 
@@ -482,4 +483,8 @@ function spr.stop(instance, property)
 	end
 end
 
-return tableLock(spr)
+if STRICT_API_ACCESS then
+	return tableLock(spr)
+else
+	return spr
+end
