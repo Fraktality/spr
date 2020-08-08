@@ -12,17 +12,19 @@
 --     Instance obj,
 --     number dampingRatio,
 --     number undampedFrequency,
---     dict<string, variant> targetProperties)
+--     dict<string, Variant> targetProperties)
 --
---     Animates the given properties towardes the desired values on
---     a spring with a given damping ratio and undamped frequency.
+--     Animates the given properties towardes the target values,
+--     given damping ratio and undamped frequency.
 --
 --
 --  spr.stop(
---     Instance obj,
---     string property)
+--     Instance obj[,
+--     string property])
 --
---     Stops the specified property from animating on an object.
+--     Stops the specified property from animating on an Instance.
+--     If no property is specified, all properties under the Instance
+--     will stop animating.
 ---------------------------------------------------------------------
 
 local SLEEP_OFFSET_SQ_LIMIT = (1/3840)^2 -- Square of the offset sleep limit
