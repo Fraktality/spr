@@ -1,6 +1,6 @@
 # spr
 
-Springs are a powerful mathematical model for defining physically based on-screen animations.
+Springs are a powerful mathematical model for describing physically based on-screen animations.
 
 **spr** is an accessible library for creating beautiful UI animations from springs.
 
@@ -106,7 +106,7 @@ spr.stop(
 Stops animations for a particular property.
 If a property is not specified, all properties belonging to the instance will stop animating.
 
-#### Example
+#### Examples
 ```lua
 spr.target(frame, 0.6, 1, {
     Position = UDim2.fromScale(1, 1)
@@ -117,4 +117,18 @@ wait(1)
 
 spr.stop(frame, "Position")
 -- spr is no longer animating frame.Position
+```
+
+
+```lua
+spr.target(frame, 0.6, 1, {
+    Position = UDim2.fromScale(1, 1),
+    Size = UDim2.fromScale(0.5, 0.5)
+})
+-- spr is now animating Position and Size
+
+wait(1)
+
+spr.stop(frame)
+-- spr is no longer animating Position or Size
 ```
