@@ -5,7 +5,7 @@ Springs are a powerful mathematical model for describing physically based on-scr
 **spr** is an accessible library for creating beautiful UI animations from springs.
 
 ---
-## Problem statement
+## Motivation
 
 Existing solutions for property animation have some combination of the following problems:
 - **Discontinuous:** Most UI animations on Roblox are done with a static time duration and fixed easing curve (e.g. TweenService).
@@ -18,8 +18,9 @@ Existing solutions for property animation have some combination of the following
 - **Boilerplate:** Existing spring-based animators require extensive boilerplate to support animating Roblox types.
 
 ---
+## Features
 
-**spr** addresses the above with:
+**spr** addresses the above problems with:
 
 - **A small API surface**
    - You should be able to animate anything by giving spr a target value and a set of animation parameters.
