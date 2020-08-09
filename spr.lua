@@ -27,10 +27,11 @@
 --     will stop animating.
 ---------------------------------------------------------------------
 
-local SLEEP_OFFSET_SQ_LIMIT = (1/3840)^2 -- Square of the offset sleep limit
-local SLEEP_VELOCITY_SQ_LIMIT = 1e-2^2 -- Square of the velocity sleep limit
-local STRICT_TYPES = true -- Assert on parameter and property type mismatch
-local STRICT_API_ACCESS = false -- Lock down the API table to prevent writes & empty reads
+local STRICT_TYPES = true -- assert on parameter and property type mismatch
+local STRICT_API_ACCESS = false -- lock down the API table to prevent writes & empty reads
+local SLEEP_OFFSET_SQ_LIMIT = (1/3840)^2 -- square of the offset sleep limit
+local SLEEP_VELOCITY_SQ_LIMIT = 1e-2^2 -- square of the velocity sleep limit
+local EPS = 1e-5 -- epsilon for stability checks around pathological frequency/damping values
 
 local RunService = game:GetService("RunService")
 
@@ -41,22 +42,21 @@ local cos = math.cos
 local min = math.min
 local sqrt = math.sqrt
 
-local function magnitudeSq(v)
+local function magnitudeSq(vec)
 	local out = 0
 
-	for idx = 1, #v do
-		out = out + v[idx]*v[idx]
+	for _, v in ipairs(vec) do
+		out += v^2
 	end
 
 	return out
 end
 
-local function distanceSq(v0, v1)
+local function distanceSq(vec0, vec1)
 	local out = 0
 
-	for idx = 1, #v0 do
-		local d = v1[idx] - v0[idx]
-		out = out + d*d
+	for i0, v0 in ipairs(vec0) do
+		out += (vec1[i0] - v0)^2
 	end
 
 	return out
@@ -95,8 +95,6 @@ end
 -- spring for an array of linear values
 local LinearSpring = {} do
 	LinearSpring.__index = LinearSpring
-
-	local EPS = 1e-5 -- used for stability checks around pathological frequency/damping values
 
 	function LinearSpring.new(dampingRatio, frequency, pos, typedat, rawTarget)
 		local linearPos = typedat.toIntermediate(pos)
