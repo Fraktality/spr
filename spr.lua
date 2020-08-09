@@ -449,7 +449,8 @@ function spr.target(instance, dampingRatio, frequency, properties)
 					propName,
 					typeof(propValue),
 					typeof(propTarget)
-				), 2
+				),
+				2
 			)
 		end
 
