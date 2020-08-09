@@ -34,6 +34,8 @@ Existing solutions for property animation have some combination of the following
 - **Tight integration with Roblox datatypes**
    - spr animates directly over Roblox properties without additional layers of indirection.
    - spr performs runtime type checking, providing stronger typing than Roblox instance property setters.
+   - spr knows how to animate in the ideal space for each datatype.
+     - For example, spr will automatically animate [Color3](https://developer.roblox.com/en-us/api-reference/datatype/Color3) values in perceptually-uniform [CIELUV space.](https://en.wikipedia.org/wiki/CIELUV)
 
 ---
 ## Spring fundamentals
