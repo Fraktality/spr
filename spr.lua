@@ -35,12 +35,7 @@ local EPS = 1e-5 -- epsilon for stability checks around pathological frequency/d
 
 local RunService = game:GetService("RunService")
 
-local pi = math.pi
-local exp = math.exp
-local sin = math.sin
-local cos = math.cos
-local min = math.min
-local sqrt = math.sqrt
+local TAU = math.pi * 2
 
 local function magnitudeSq(vec)
 	local out = 0
@@ -66,11 +61,11 @@ end
 -- empty keys, writing keys, and inspecting the metatable
 local tableLock do
 	local function invalidRead(_, k)
-		error(("reading nonexistent element %q from locked table"):format(tostring(k)), 2)
+		error(string.format("reading nonexistent element %q from locked table", tostring(k)), 2)
 	end
 
 	local function invalidWrite(_, k)
-		error(("writing key %q to locked table"):format(tostring(k)), 2)
+		error(string.format("writing key %q to locked table", tostring(k)), 2)
 	end
 
 	local RW_LOCK = {
@@ -142,13 +137,13 @@ local LinearSpring = {} do
 		-- The solution takes one of three forms for 0<=d<1, d=1, and d>1
 
 		local d = self.d
-		local f = self.f*2*pi -- Hz -> Rad/s
+		local f = self.f*TAU -- Hz -> Rad/s
 		local g = self.g
 		local p = self.p
 		local v = self.v
 
 		if d == 1 then -- critically damped
-			local q = exp(-f*dt)
+			local q = math.exp(-f*dt)
 			local w = dt*q
 
 			local c0 = q + w*f
@@ -162,11 +157,11 @@ local LinearSpring = {} do
 			end
 
 		elseif d < 1 then -- underdamped
-			local q = exp(-d*f*dt)
-			local c = sqrt(1 - d*d)
+			local q = math.exp(-d*f*dt)
+			local c = math.sqrt(1 - d*d)
 
-			local i = cos(dt*f*c)
-			local j = sin(dt*f*c)
+			local i = math.cos(dt*f*c)
+			local j = math.sin(dt*f*c)
 
 			-- Damping ratios approaching 1 can cause division by very small numbers.
 			-- To mitigate that, group terms around z=j/c and find an approximation for z.
@@ -210,13 +205,13 @@ local LinearSpring = {} do
 			end
 
 		else -- overdamped
-			local c = sqrt(d*d - 1)
+			local c = math.sqrt(d*d - 1)
 
 			local r1 = -f*(d - c)
 			local r2 = -f*(d + c)
 
-			local ec1 = exp(r1*dt)
-			local ec2 = exp(r2*dt)
+			local ec1 = math.exp(r1*dt)
+			local ec2 = math.exp(r2*dt)
 
 			for idx = 1, #p do
 				local o = p[idx] - g[idx]
@@ -239,7 +234,7 @@ local typeMetadata = {
 		springType = LinearSpring.new,
 
 		toIntermediate = function(value)
-			return {value}
+			return table.create(1, value)
 		end,
 
 		fromIntermediate = function(value)
@@ -251,7 +246,9 @@ local typeMetadata = {
 		springType = LinearSpring.new,
 
 		toIntermediate = function(value)
-			return {value.Min, value.Max}
+			local intermediate = table.create(2)
+			intermediate[1], intermediate[2] = value.Min, value.Max
+			return intermediate
 		end,
 
 		fromIntermediate = function(value)
@@ -263,7 +260,9 @@ local typeMetadata = {
 		springType = LinearSpring.new,
 
 		toIntermediate = function(value)
-			return {value.Scale, value.Offset}
+			local intermediate = table.create(2)
+			intermediate[1], intermediate[2] = value.Scale, value.Offset
+			return intermediate
 		end,
 
 		fromIntermediate = function(value)
@@ -277,7 +276,11 @@ local typeMetadata = {
 		toIntermediate = function(value)
 			local x = value.X
 			local y = value.Y
-			return {x.Scale, x.Offset, y.Scale, y.Offset}
+			local intermediate = table.create(4)
+			intermediate[1], intermediate[2] = x.Scale, x.Offset
+			intermediate[3], intermediate[4] = y.Scale, y.Offset
+
+			return intermediate
 		end,
 
 		fromIntermediate = function(value)
@@ -289,7 +292,9 @@ local typeMetadata = {
 		springType = LinearSpring.new,
 
 		toIntermediate = function(value)
-			return {value.X, value.Y}
+			local intermediate = table.create(2)
+			intermediate[1], intermediate[2] = value.X, value.Y
+			return intermediate
 		end,
 
 		fromIntermediate = function(value)
@@ -301,7 +306,9 @@ local typeMetadata = {
 		springType = LinearSpring.new,
 
 		toIntermediate = function(value)
-			return {value.X, value.Y, value.Z}
+			local intermediate = table.create(3)
+			intermediate[1], intermediate[2], intermediate[3] = value.X, value.Y, value.Z
+			return intermediate
 		end,
 
 		fromIntermediate = function(value)
@@ -314,7 +321,7 @@ local typeMetadata = {
 
 		toIntermediate = function(value)
 			-- convert RGB to a variant of cieluv space
-			local r, g, b = value.r, value.g, value.b
+			local r, g, b = value.R, value.G, value.B
 
 			-- D65 sRGB inverse gamma correction
 			r = r < 0.0404482362771076 and r/12.92 or 0.87941546140213*(r + 0.055)^2.4
@@ -338,7 +345,9 @@ local typeMetadata = {
 				v = -0.46832*l
 			end
 
-			return {l, u, v}
+			local intermediate = table.create(3)
+			intermediate[1], intermediate[2], intermediate[3] = l, u, v
+			return intermediate
 		end,
 
 		fromIntermediate = function(value)
@@ -374,9 +383,9 @@ local typeMetadata = {
 			-- gamma correction from D65
 			-- clamp to avoid undesirable overflow wrapping behavior on certain properties (e.g. BasePart.Color)
 			return Color3.new(
-				min(r < 3.1306684425e-3 and 12.92*r or 1.055*r^(1/2.4) - 0.055, 1),
-				min(g < 3.1306684425e-3 and 12.92*g or 1.055*g^(1/2.4) - 0.055, 1),
-				min(b < 3.1306684425e-3 and 12.92*b or 1.055*b^(1/2.4) - 0.055, 1)
+				math.min(r < 3.1306684425e-3 and 12.92*r or 1.055*r^(1/2.4) - 0.055, 1),
+				math.min(g < 3.1306684425e-3 and 12.92*g or 1.055*g^(1/2.4) - 0.055, 1),
+				math.min(b < 3.1306684425e-3 and 12.92*b or 1.055*b^(1/2.4) - 0.055, 1)
 			)
 		end,
 	}
@@ -404,7 +413,8 @@ end)
 local function assertType(argNum, fnName, expectedType, value)
 	if STRICT_TYPES and typeof(value) ~= expectedType then
 		error(
-			("bad argument #%d to %s (%s expected, got %s)"):format(
+			string.format(
+				"bad argument #%d to %s (%s expected, got %s)",
 				argNum,
 				fnName,
 				expectedType,
@@ -424,11 +434,11 @@ function spr.target(instance, dampingRatio, frequency, properties)
 	assertType(4, "spr.target", "table", properties)
 
 	if dampingRatio ~= dampingRatio or dampingRatio < 0 then
-		error(("expected damping ratio >= 0; got %.2f"):format(dampingRatio), 2)
+		error(string.format("expected damping ratio >= 0; got %.2f", dampingRatio), 2)
 	end
 
 	if frequency ~= frequency or frequency < 0 then
-		error(("expected undamped frequency >= 0; got %.2f"):format(frequency), 2)
+		error(string.format("expected undamped frequency >= 0; got %.2f", frequency), 2)
 	end
 
 	local state = springStates[instance]
@@ -443,7 +453,8 @@ function spr.target(instance, dampingRatio, frequency, properties)
 
 		if STRICT_TYPES and typeof(propTarget) ~= typeof(propValue) then
 			error(
-				("bad property %s to spr.target (%s expected, got %s)"):format(
+				string.format(
+					"bad property %s to spr.target (%s expected, got %s)",
 					propName,
 					typeof(propValue),
 					typeof(propTarget)
