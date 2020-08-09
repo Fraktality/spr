@@ -4,7 +4,6 @@ Springs are a powerful mathematical model for describing physically based on-scr
 
 **spr** is an accessible library for creating beautiful UI animations from springs.
 
----
 ## Motivation
 
 Existing solutions for property animation have some combination of the following problems:
@@ -17,7 +16,6 @@ Existing solutions for property animation have some combination of the following
   - Predicting which values explode is difficult without performing the animation, which poses problems for static analysis tools.
 - **Boilerplate:** Existing spring-based animators require extensive boilerplate to support animating Roblox types.
 
----
 ## Features
 
 **spr** addresses the above problems with:
@@ -37,7 +35,6 @@ Existing solutions for property animation have some combination of the following
    - spr knows how to animate in the ideal space for each datatype.
      - For example, spr will automatically animate [Color3](https://developer.roblox.com/en-us/api-reference/datatype/Color3) values in perceptually-uniform [CIELUV space.](https://en.wikipedia.org/wiki/CIELUV)
 
----
 ## Spring fundamentals
 
 Damping ratio and undamped frequency are the two properties describing a spring's motion.
@@ -55,7 +52,6 @@ Underdamping is recommended for animations that need to "pop."
 
 Damping ratio and frequency can be [visualized here.](https://www.desmos.com/calculator/rzvw27ljh9)
 
----
 ## API
 
 ### spr.target
