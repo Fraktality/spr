@@ -1,4 +1,4 @@
-# spr
+# ☄️ spr
 
 Springs are a powerful mathematical model for describing physically based on-screen animations.
 
