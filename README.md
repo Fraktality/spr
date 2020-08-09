@@ -8,12 +8,13 @@ Springs are a powerful mathematical model for describing physically based on-scr
 ## Problem statement
 
 Existing solutions for property animation have some combination of the following problems:
-- **Continuity:** Most UI animations on Roblox are done with a static time duration and fixed easing curve (e.g. TweenService).
-   - Static easing curves are hard to blend without special cases in your top-level animation code.
-   - Interrupting one static animation with another looks jarring and discontinuous (velocity is not preserved).
-- **Ease of use:** Most spring-based animators use discrete Euler or Runge-Kutta solutions where the user passes stiffness, damping, and mass parameters based on Hooke's law. These values are notoriously difficult to tune intuitively without trial and error.
-- **Robustness:** The numerical nature of those Runge-Kutta solutions makes them susceptible to "exploding" at unpredictable values (nonconvergence).
-   - Predicting which values explode is difficult without performing the animation, which poses problems for static analysis tools.
+- **Discontinuous:** Most UI animations on Roblox are done with a static time duration and fixed easing curve (e.g. TweenService).
+  - Static easing curves are hard to blend without adding special cases to your top-level animation code.
+  - Interrupting one static animation with another looks jarring and discontinuous (velocity is not preserved).
+- **Hard to tune:** Most spring-based animators use discrete Euler or Runge-Kutta approximations where the user passes stiffness, damping, and mass parameters based on Hooke's law.
+  - These values are notoriously difficult to tune intuitively without trial and error. You don't know what your animation will look like until you run it.
+- **Not robust enough:** The discrete nature of those approximations makes them susceptible to "exploding" at unpredictable values (nonconvergence).
+  - Predicting which values explode is difficult without performing the animation, which poses problems for static analysis tools.
 - **Boilerplate:** Existing spring-based animators require extensive boilerplate to support animating Roblox types.
 
 ---
@@ -23,9 +24,12 @@ Existing solutions for property animation have some combination of the following
 - **A small API surface**
    - You should be able to animate anything by giving spr a target value and a set of animation parameters.
    - You should not have to memorize new datatypes or more than a few API calls.
+- **Easy-to-tune motion parameters**
+   - You should be able to know how an animation will look without running the game.
+   - Motion is defind by frequency and damping ratio, which are easy to understand and visualize.
 - **A numberically robust, analytical spring model**
-   - You should never be able to accidentally hand the spring solver values that will cause numerical instability or explosion.
-   - If spr is given a nonconverging set of motion parameters, it should give a clear error describing what is wrong and how to fix it.
+   - You should never be able to accidentally pass the spring solver values that will cause numerical instability or explosion.
+   - If spr is given a nonconverging set of motion parameters, it will throw a clear error describing what is wrong and how to fix it.
 - **Tight integration with Roblox datatypes**
    - spr animates directly over Roblox properties without additional layers of indirection.
    - spr performs runtime type checking, providing stronger typing than Roblox instance property setters.
@@ -36,7 +40,7 @@ Existing solutions for property animation have some combination of the following
 Damping ratio and undamped frequency are the two properties describing a spring's motion.
 
 - [Damping ratio](https://en.wikipedia.org/wiki/Damping_ratio) describes shape
-- [Frequency](https://ocw.mit.edu/courses/mathematics/18-03-differential-equations-spring-2010/readings/supp_notes/MIT18_03S10_chapter_13.pdf) describes speed
+- [Undamped frequency](https://ocw.mit.edu/courses/mathematics/18-03-differential-equations-spring-2010/readings/supp_notes/MIT18_03S10_chapter_13.pdf) describes speed
 
 ### Damping ratio
 - **Damping ratio < 1** overshoots and converges on the target. This is called underdamping.
@@ -132,3 +136,18 @@ wait(1)
 spr.stop(frame)
 -- spr is no longer animating Position or Size
 ```
+
+## Setup
+
+spr is a single-module library.
+
+1. Paste the source of [spr.lua](https://raw.githubusercontent.com/Fraktality/spr/master/spr.lua) into a new ModuleScript
+2. Require the ModuleScript with `local spr = require(<path to spr>)`
+3. Follow the above code examples to get started with the API.
+
+Documentation on how to use ModuleScripts can be found [here.](https://developer.roblox.com/en-us/api-reference/class/ModuleScript)
+
+### roblox-ts
+
+roblox-ts bindings for spr can be installed [here.](https://www.npmjs.com/package/@rbxts/spr)
+
