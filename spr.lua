@@ -314,7 +314,7 @@ local typeMetadata = {
 
 		toIntermediate = function(value)
 			-- convert RGB to a variant of cieluv space
-			local r, g, b = value.r, value.g, value.b
+			local r, g, b = value.R, value.G, value.B
 
 			-- D65 sRGB inverse gamma correction
 			r = r < 0.0404482362771076 and r/12.92 or 0.87941546140213*(r + 0.055)^2.4
@@ -379,7 +379,7 @@ local typeMetadata = {
 				min(b < 3.1306684425e-3 and 12.92*b or 1.055*b^(1/2.4) - 0.055, 1)
 			)
 		end,
-	}
+	},
 }
 
 local springStates = {} -- {[instance] = {[property] = spring}
@@ -402,7 +402,11 @@ RunService.Stepped:Connect(function(_, dt)
 end)
 
 local function assertType(argNum, fnName, expectedType, value)
-	if STRICT_TYPES and typeof(value) ~= expectedType then
+	if not STRICT_TYPES then
+		return
+	end
+
+	if not expectedType:find(typeof(value)) then
 		error(
 			("bad argument #%d to %s (%s expected, got %s)"):format(
 				argNum,
@@ -472,7 +476,7 @@ end
 
 function spr.stop(instance, property)
 	assertType(1, "spr.stop", "Instance", instance)
-	assertType(2, "spr.stop", "string", property)
+	assertType(2, "spr.stop", "string|nil", property)
 
 	if property then
 		local state = springStates[instance]
