@@ -1,0 +1,6 @@
+{
+	"name": "spr",
+	"tree": {
+		"$path": "spr.lua"
+	}
+}
