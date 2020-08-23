@@ -9,7 +9,7 @@ Springs are a simple and powerful model for describing physically-based motion.
 
 #### Easy-to-tune motion
 - You should be able to know how an animation will look without running the game.
-- Motion is defind by frequency and damping ratio, which are easy to understand and visualize.
+- Motion is defined by frequency and damping ratio, which are easy to understand and visualize.
 
 #### A robust, analytical spring model
 - You should never be able to accidentally pass the spring solver values that will cause numerical instability or explosion.
