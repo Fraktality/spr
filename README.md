@@ -1,39 +1,25 @@
 # ☄️ spr
-
-Springs are a powerful mathematical model for describing physically based motion.
-
-**spr** is an accessible library for creating beautiful UI animations from springs.
-
-## Motivation
-
-Existing solutions for property animation have some combination of the following problems:
-- **Discontinuous:** Most UI animations on Roblox are done with a static time duration and fixed easing curve (e.g. TweenService).
-  - Static easing curves are hard to blend without adding special cases to your top-level animation code.
-  - Interrupting one static animation with another looks jarring and discontinuous (velocity is not preserved).
-- **Hard to tune:** Most spring-based animators use discrete Euler or Runge-Kutta approximations where the user passes stiffness, damping, and mass parameters based on Hooke's law.
-  - These values are notoriously difficult to tune intuitively without trial and error. You don't know what your animation will look like until you run it.
-- **Not robust enough:** The discrete nature of those approximations makes them susceptible to "exploding" at unpredictable values (nonconvergence).
-  - Predicting which values explode is difficult without performing the animation, which poses problems for static analysis tools.
-- **Boilerplate:** Existing spring-based animators require extensive boilerplate to support animating Roblox types.
+Springs are a simple and powerful model for describing physically-based motion.
+**spr** is a small spring-based UI animation library.
 
 ## Features
+#### A small API
+- You should be able to animate anything by giving spr a target value and a set of animation parameters.
+- You should not have to memorize new datatypes or more than a few API calls.
 
-**spr** addresses the above problems with:
+#### Easy-to-tune motion
+- You should be able to know how an animation will look without running the game.
+- Motion is defind by frequency and damping ratio, which are easy to understand and visualize.
 
-- **A small API surface**
-   - You should be able to animate anything by giving spr a target value and a set of animation parameters.
-   - You should not have to memorize new datatypes or more than a few API calls.
-- **Easy-to-tune motion parameters**
-   - You should be able to know how an animation will look without running the game.
-   - Motion is defind by frequency and damping ratio, which are easy to understand and visualize.
-- **A numberically robust, analytical spring model**
-   - You should never be able to accidentally pass the spring solver values that will cause numerical instability or explosion.
-   - If spr is given a nonconverging set of motion parameters, it will throw a clear error describing what is wrong and how to fix it.
-- **Tight integration with Roblox datatypes**
-   - spr animates directly over Roblox properties without additional layers of indirection.
-   - spr performs runtime type checking, providing stronger typing than Roblox instance property setters.
-   - spr knows how to animate in the ideal space for each datatype.
-     - For example, spr will automatically animate [Color3](https://developer.roblox.com/en-us/api-reference/datatype/Color3) values in perceptually-uniform [CIELUV space.](https://en.wikipedia.org/wiki/CIELUV)
+#### A robust, analytical spring model
+- You should never be able to accidentally pass the spring solver values that will cause numerical instability or explosion.
+- If spr is given a nonconverging set of motion parameters, it will throw a clear error describing what is wrong and how to fix it.
+
+#### Tight integration with Roblox datatypes
+- spr animates directly over Roblox properties without additional layers of indirection.
+- spr performs runtime type checking, providing stronger typing than Roblox instance property setters.
+- spr knows how to animate in the ideal space for each datatype.
+    - For example, spr will automatically animate [Color3](https://developer.roblox.com/en-us/api-reference/datatype/Color3) values in perceptually-uniform [CIELUV space.](https://en.wikipedia.org/wiki/CIELUV)
 
 ## Spring fundamentals
 
