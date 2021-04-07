@@ -308,6 +308,18 @@ local typeMetadata = {
 			return Vector3.new(value[1], value[2], value[3])
 		end,
 	},
+	
+	CFrame = {
+		springType = LinearSpring.new,
+
+		toIntermediate = function(value)
+			return {value:GetComponents()}
+		end,
+
+		fromIntermediate = function(value)
+			return CFrame.new(unpack(value))
+		end,
+	},
 
 	Color3 = {
 		springType = LinearSpring.new,
