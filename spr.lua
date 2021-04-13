@@ -384,7 +384,7 @@ local typeMetadata = {
 
 local springStates = {} -- {[instance] = {[property] = spring}
 
-RunService.Stepped:Connect(function(_, dt)
+RunService.Heartbeat:Connect(function(dt)
 	for instance, state in pairs(springStates) do
 		for propName, spring in pairs(state) do
 			if spring:canSleep() then
