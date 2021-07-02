@@ -1,7 +1,7 @@
 ---------------------------------------------------------------------
 -- spr - Spring-driven motion library
 --
--- Copyright (c) 2020 Parker Stebbins. All rights reserved.
+-- Copyright (c) 2021 Parker Stebbins. All rights reserved.
 -- Released under the MIT license.
 --
 -- License & docs can be found at https://github.com/Fraktality/spr
