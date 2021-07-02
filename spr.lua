@@ -41,6 +41,11 @@ local sin = math.sin
 local cos = math.cos
 local min = math.min
 local sqrt = math.sqrt
+local floor = math.floor
+
+local function round(x)
+	return floor(x + 0.5)
+end
 
 local function magnitudeSq(vec)
 	local out = 0
@@ -267,7 +272,7 @@ local typeMetadata = {
 		end,
 
 		fromIntermediate = function(value)
-			return UDim.new(value[1], value[2])
+			return UDim.new(value[1], round(value[2]))
 		end,
 	},
 
@@ -281,7 +286,7 @@ local typeMetadata = {
 		end,
 
 		fromIntermediate = function(value)
-			return UDim2.new(value[1], value[2], value[3], value[4])
+			return UDim2.new(value[1], round(value[2]), value[3], round(value[4]))
 		end,
 	},
 
