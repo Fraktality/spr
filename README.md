@@ -132,6 +132,12 @@ spr is a single-module library.
 
 Documentation on how to use ModuleScripts can be found [here.](https://developer.roblox.com/en-us/api-reference/class/ModuleScript)
 
+### wally
+
+1. Setup a wally project, you can find information about that [here](https://github.com/upliftgames/wally).
+2. Add ``Spr = "eldonwilliams/spr@^0.1.0"`` to your `wally.toml` file
+3. Run ``wally install`` and you should be good to go!
+
 ### roblox-ts
 
 roblox-ts bindings for spr can be installed [here.](https://www.npmjs.com/package/@rbxts/spr)
