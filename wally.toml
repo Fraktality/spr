@@ -1,6 +1,6 @@
 [package]
 name = "eldonwilliams/spr"
-version = "0.1.1"
+version = "0.2.0"
 description = "Spr module as a wally package w/ added support for "
 registry = "https://github.com/UpliftGames/wally-index"
 realm = "shared"
