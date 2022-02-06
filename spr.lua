@@ -385,6 +385,30 @@ local typeMetadata = {
 			)
 		end,
 	},
+
+	CFrame = {
+		springType = LinearSpring.new,
+
+		toIntermediate = function(value)
+			return {value:GetComponents()}
+		end,
+
+		fromIntermediate = function(value)
+			return CFrame.new(unpack(value))
+		end,
+	},
+
+	boolean = {
+		springType = LinearSpring.new,
+
+		toIntermediate = function(value)
+			return {value and 1 or 0}
+		end,
+
+		fromIntermediate = function(value)
+			return value[1] >= 0 or false
+		end,
+	},
 }
 
 local springStates = {} -- {[instance] = {[property] = spring}
