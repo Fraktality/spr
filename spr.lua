@@ -394,7 +394,7 @@ local typeMetadata = {
 		end,
 
 		fromIntermediate = function(value)
-			return CFrame.new(unpack(value))
+			return CFrame.new(unpack(value)):Orthonormalize()
 		end,
 	},
 
