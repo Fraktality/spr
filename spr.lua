@@ -28,7 +28,6 @@
 ---------------------------------------------------------------------
 
 local STRICT_TYPES = true -- assert on parameter and property type mismatch
-local STRICT_API_ACCESS = false -- lock down the API table to prevent writes & empty reads
 local SLEEP_OFFSET_SQ_LIMIT = (1/3840)^2 -- square of the offset sleep limit
 local SLEEP_VELOCITY_SQ_LIMIT = 1e-2^2 -- square of the velocity sleep limit
 local EPS = 1e-5 -- epsilon for stability checks around pathological frequency/damping values
@@ -64,33 +63,18 @@ local function distanceSq(vec0, vec1)
 	return out
 end
 
--- create a proxy object for a table that prevents reading
--- empty keys, writing keys, and inspecting the metatable
-local tableLock do
+-- prevent reading empty keys, writing keys, and inspecting the metatable
+local lockTable do
 	local function invalidRead(_, k)
-		error(("reading nonexistent element %q from locked table"):format(tostring(k)), 2)
+		error(("Attempt to read nonexistent key %q from a locked table"):format(tostring(k)), 2)
 	end
 
-	local function invalidWrite(_, k)
-		error(("writing key %q to locked table"):format(tostring(k)), 2)
-	end
+	local READ_LOCK = table.freeze({
+		__index = invalidRead
+	})
 
-	local RW_LOCK = {
-		__index = invalidRead,
-		__newindex = invalidWrite,
-	}
-
-	function tableLock(tbl)
-		setmetatable(tbl, RW_LOCK)
-
-		return setmetatable(
-			{},
-			{
-				__index = tbl,
-				__newindex = invalidWrite,
-				__metatable = "The metatable is locked",
-			}
-		)
+	function lockTable(tbl)
+		return table.freeze(setmetatable(tbl, READ_LOCK))
 	end
 end
 
@@ -490,8 +474,4 @@ function spr.stop(instance, property)
 	end
 end
 
-if STRICT_API_ACCESS then
-	return tableLock(spr)
-else
-	return spr
-end
+return lockTable(spr)
