@@ -42,10 +42,7 @@ local cos = math.cos
 local min = math.min
 local sqrt = math.sqrt
 local floor = math.floor
-
-local function round(x)
-	return floor(x + 0.5)
-end
+local round = math.round
 
 local function magnitudeSq(vec)
 	local out = 0
