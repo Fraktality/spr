@@ -63,21 +63,6 @@ local function distanceSq(vec0, vec1)
 	return out
 end
 
--- prevent reading empty keys, writing keys, and inspecting the metatable
-local lockTable do
-	local function invalidRead(_, k)
-		error(("Attempt to read nonexistent key %q from a locked table"):format(tostring(k)), 2)
-	end
-
-	local READ_LOCK = table.freeze({
-		__index = invalidRead
-	})
-
-	function lockTable(tbl)
-		return table.freeze(setmetatable(tbl, READ_LOCK))
-	end
-end
-
 -- spring for an array of linear values
 local LinearSpring = {} do
 	LinearSpring.__index = LinearSpring
@@ -474,4 +459,4 @@ function spr.stop(instance, property)
 	end
 end
 
-return lockTable(spr)
+return table.freeze(spr)
