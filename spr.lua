@@ -248,7 +248,7 @@ local typeMetadata = {
 		end,
 
 		fromIntermediate = function(value)
-			return value[1] >= 0 or false
+			return value[1] >= 0.5
 		end,
 	},
 	
