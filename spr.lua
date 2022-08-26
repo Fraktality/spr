@@ -206,6 +206,18 @@ end
 -- transforms Roblox types into intermediate types, converting
 -- between spaces as necessary to preserve perceptual linearity
 local typeMetadata = {
+	boolean = {
+		springType = LinearSpring.new,
+
+		toIntermediate = function(value)
+			return {value and 1 or 0}
+		end,
+
+		fromIntermediate = function(value)
+			return value[1] >= 0.5
+		end,
+	},
+	
 	number = {
 		springType = LinearSpring.new,
 
