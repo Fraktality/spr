@@ -1,18 +1,26 @@
 # ☄️ spr
-Springs are a simple and powerful model for describing physically-based motion.
-**spr** is a small spring-based UI animation library.
+Springs are a powerful model for describing fluid, physically-based animations.
+**spr** is a spring-based motion library for Roblox.
+
+```lua
+local spr = require(game.ReplicatedStorage.spr)
+
+spr.target(frame, 0.6, 1, {
+    Size = UDim2.fromOffset(400, 400)
+})
+```
 
 ## Features
-#### A small API
-- You should be able to animate anything by giving spr a target value and a set of animation parameters.
-- You should not have to memorize new datatypes or more than a few API calls.
+#### A small, easy to use API
+- spr is easy enough for designers and learning programmers to understand.
+- spr only needs a target value and motion parameters. It handles all other aspects of animation automatically and correctly, from interaction with the Roblox task scheduler to datatype-specific interpolation.
 
 #### Easy-to-tune motion
-- You should be able to know how an animation will look without running the game.
-- Motion is defined by frequency and damping ratio, which are easy to understand and visualize.
+- Motion is defined by *frequency* and *damping ratio*.
+- Frequency and damping ratio are easy to visualize without running the game. Tuning usually only takes one try.
 
-#### A robust, analytical spring model
-- You should never be able to accidentally pass the spring solver values that will cause numerical instability or explosion.
+#### A robust spring model
+- spr's robust analytical motion solver handles a wide variety of spring parameters that cause other spring solvers to fail.
 - If spr is given a nonconverging set of motion parameters, it will throw a clear error describing what is wrong and how to fix it.
 
 #### Tight integration with Roblox datatypes
@@ -33,8 +41,8 @@ Damping ratio and undamped frequency are the two properties describing a spring'
 - **Damping ratio = 1** converges on the target without overshooting. This is called critical damping.
 - **Damping ratio > 1** converges on the target without overshooting, but slower. This is called overdamping.
 
-Critical damping is recommended as the most visually neutral option.
-Underdamping is recommended for animations that need to "pop."
+Critical damping is recommended as the most visually neutral option with no overshoot.
+Underdamping is recommended for animations that need extra pop.
 
 Damping ratio and frequency can be [visualized here.](https://www.desmos.com/calculator/rzvw27ljh9)
 
