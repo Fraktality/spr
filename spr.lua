@@ -111,7 +111,7 @@ local LinearSpring = {} do
 		-- The solution takes one of three forms for 0<=d<1, d=1, and d>1
 
 		local d = self.d
-		local f = self.f*2*pi -- Hz -> Rad/s
+		local f = self.f*(2*pi) -- Hz -> Rad/s
 		local g = self.g
 		local p = self.p
 		local v = self.v
@@ -448,9 +448,9 @@ function spr.target(instance, dampingRatio, frequency, properties)
 		if STRICT_TYPES and typeof(propTarget) ~= typeof(propValue) then
 			error(
 				("bad property %s to spr.target (%s expected, got %s)"):format(
-				propName,
-				typeof(propValue),
-				typeof(propTarget)
+					propName,
+					typeof(propValue),
+					typeof(propTarget)
 				),
 				2
 			)
