@@ -4,7 +4,7 @@
 -- Copyright (c) 2022 Fractality. All rights reserved.
 -- Released under the MIT license.
 --
--- License & docs can be found at https://github.com/Fraktality/spr
+-- Docs & license can be found at https://github.com/Fraktality/spr
 --
 -- API Summary:
 --
@@ -45,21 +45,17 @@ local round = math.round
 
 local function magnitudeSq(vec)
 	local out = 0
-
-	for _, v in ipairs(vec) do
+	for _, v in vec do
 		out += v^2
 	end
-
 	return out
 end
 
 local function distanceSq(vec0, vec1)
 	local out = 0
-
-	for i0, v0 in ipairs(vec0) do
+	for i0, v0 in vec0 do
 		out += (vec1[i0] - v0)^2
 	end
-
 	return out
 end
 
@@ -368,8 +364,8 @@ local typeMetadata = {
 local springStates = {} -- {[instance] = {[property] = spring}
 
 RunService.Heartbeat:Connect(function(dt)
-	for instance, state in pairs(springStates) do
-		for propName, spring in pairs(state) do
+	for instance, state in springStates do
+		for propName, spring in state do
 			if spring:canSleep() then
 				state[propName] = nil
 				instance[propName] = spring.rawTarget
@@ -425,7 +421,7 @@ function spr.target(instance, dampingRatio, frequency, properties)
 		springStates[instance] = state
 	end
 
-	for propName, propTarget in pairs(properties) do
+	for propName, propTarget in properties do
 		local propValue = instance[propName]
 
 		if STRICT_TYPES and typeof(propTarget) ~= typeof(propValue) then
