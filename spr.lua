@@ -8,23 +8,26 @@
 --
 -- API Summary:
 --
---  spr.target(
---     Instance obj,
---     number dampingRatio,
---     number undampedFrequency,
---     dict<string, Variant> targetProperties)
+-- spr.target(
+--    Instance obj,
+--    number dampingRatio,
+--    number undampedFrequency,
+--    dict<string, Variant> targetProperties)
 --
---     Animates the given properties towardes the target values,
---     given damping ratio and undamped frequency.
+--    Animates the given properties towardes the target values,
+--    given a set of spring parameters.
 --
 --
---  spr.stop(
---     Instance obj[,
---     string property])
+-- spr.stop(
+--    Instance obj[,
+--    string property])
 --
---     Stops the specified property from animating on an Instance.
---     If no property is specified, all properties under the Instance
---     will stop animating.
+--    Stops the specified property on an Instance from animating.
+--    If no property is specified, all properties of the Instance
+--    will stop animating.
+--
+-- Visualizer: https://www.desmos.com/calculator/rzvw27ljh9
+--
 ---------------------------------------------------------------------
 
 local STRICT_TYPES = true -- assert on parameter and property type mismatch
@@ -40,7 +43,6 @@ local sin = math.sin
 local cos = math.cos
 local min = math.min
 local sqrt = math.sqrt
-local floor = math.floor
 local round = math.round
 
 local function magnitudeSq(vec)
@@ -199,21 +201,85 @@ local LinearSpring = {} do
 	end
 end
 
+local function inverseGammaCorrectD65(c)
+	return c < 0.0404482362771076 and c/12.92 or 0.87941546140213*(c + 0.055)^2.4
+end
+
+local function gammaCorrectD65(c)
+	return c < 3.1306684425e-3 and 12.92*c or 1.055*c^(1/2.4) - 0.055
+end
+
+local function rgbToLuv(value)
+	-- convert RGB to a variant of cieluv space
+	local r, g, b = value.R, value.G, value.B
+
+	-- D65 sRGB inverse gamma correction
+	r = inverseGammaCorrectD65(r)
+	g = inverseGammaCorrectD65(g)
+	b = inverseGammaCorrectD65(b)
+
+	-- sRGB -> xyz
+	local x = 0.9257063972951867*r - 0.8333736323779866*g - 0.09209820666085898*b
+	local y = 0.2125862307855956*r + 0.71517030370341085*g + 0.0722004986433362*b
+	local z = 3.6590806972265883*r + 11.4426895800574232*g + 4.1149915024264843*b
+
+	-- xyz -> scaled cieluv
+	local l = y > 0.008856451679035631 and 116*y^(1/3) - 16 or 903.296296296296*y
+
+	local u, v
+	if z > 1e-14 then
+		u = l*x/z
+		v = l*(9*y/z - 0.46832)
+	else
+		u = -0.19783*l
+		v = -0.46832*l
+	end
+
+	return {l, u, v}
+end
+
+local function luvToRgb(value)
+	-- convert back from modified cieluv to rgb space
+
+	local l = value[1]
+	if l < 0.0197955 then
+		return Color3.new(0, 0, 0)
+	end
+	local u = value[2]/l + 0.19783
+	local v = value[3]/l + 0.46832
+
+	-- cieluv -> xyz
+	local y = (l + 16)/116
+	y = y > 0.206896551724137931 and y*y*y or 0.12841854934601665*y - 0.01771290335807126
+	local x = y*u/v
+	local z = y*((3 - 0.75*u)/v - 5)
+
+	-- xyz -> D65 sRGB
+	local r =  7.2914074*x - 1.5372080*y - 0.4986286*z
+	local g = -2.1800940*x + 1.8757561*y + 0.0415175*z
+	local b =  0.1253477*x - 0.2040211*y + 1.0569959*z
+
+	-- clamp minimum sRGB component
+	if r < 0 and r < g and r < b then
+		r, g, b = 0, g - r, b - r
+	elseif g < 0 and g < b then
+		r, g, b = r - g, 0, b - g
+	elseif b < 0 then
+		r, g, b = r - b, g - b, 0
+	end
+
+	-- gamma correction from D65
+	-- clamp to avoid undesirable overflow wrapping behavior on certain properties (e.g. BasePart.Color)
+	return Color3.new(
+		min(gammaCorrectD65(r), 1),
+		min(gammaCorrectD65(g), 1),
+		min(gammaCorrectD65(b), 1)
+	)
+end
+
 -- transforms Roblox types into intermediate types, converting
 -- between spaces as necessary to preserve perceptual linearity
 local typeMetadata = {
-	boolean = {
-		springType = LinearSpring.new,
-
-		toIntermediate = function(value)
-			return {value and 1 or 0}
-		end,
-
-		fromIntermediate = function(value)
-			return value[1] >= 0.5
-		end,
-	},
-	
 	number = {
 		springType = LinearSpring.new,
 
@@ -290,72 +356,29 @@ local typeMetadata = {
 
 	Color3 = {
 		springType = LinearSpring.new,
-
+		toIntermediate = rgbToLuv,
+		fromIntermediate = luvToRgb,
+	},
+	
+	-- Only takes start and end keypoints
+	ColorSequence = {
+		springType = LinearSpring.new,
 		toIntermediate = function(value)
-			-- convert RGB to a variant of cieluv space
-			local r, g, b = value.R, value.G, value.B
-
-			-- D65 sRGB inverse gamma correction
-			r = r < 0.0404482362771076 and r/12.92 or 0.87941546140213*(r + 0.055)^2.4
-			g = g < 0.0404482362771076 and g/12.92 or 0.87941546140213*(g + 0.055)^2.4
-			b = b < 0.0404482362771076 and b/12.92 or 0.87941546140213*(b + 0.055)^2.4
-
-			-- sRGB -> xyz
-			local x = 0.9257063972951867*r - 0.8333736323779866*g - 0.09209820666085898*b
-			local y = 0.2125862307855956*r + 0.71517030370341085*g + 0.0722004986433362*b
-			local z = 3.6590806972265883*r + 11.4426895800574232*g + 4.1149915024264843*b
-
-			-- xyz -> modified cieluv
-			local l = y > 0.008856451679035631 and 116*y^(1/3) - 16 or 903.296296296296*y
-
-			local u, v
-			if z > 1e-14 then
-				u = l*x/z
-				v = l*(9*y/z - 0.46832)
-			else
-				u = -0.19783*l
-				v = -0.46832*l
-			end
-
-			return {l, u, v}
+			local keypoints = value.Keypoints
+			
+			local luv0 = rgbToLuv(keypoints[1].Value)
+			local luv1 = rgbToLuv(keypoints[#keypoints].Value)
+			
+			return {
+				luv0[1], luv0[2], luv0[3],
+				luv1[1], luv1[2], luv1[3],
+			}
 		end,
 
 		fromIntermediate = function(value)
-			-- convert back from modified cieluv to rgb space
-
-			local l = value[1]
-			if l < 0.0197955 then
-				return Color3.new(0, 0, 0)
-			end
-			local u = value[2]/l + 0.19783
-			local v = value[3]/l + 0.46832
-
-			-- cieluv -> xyz
-			local y = (l + 16)/116
-			y = y > 0.206896551724137931 and y*y*y or 0.12841854934601665*y - 0.01771290335807126
-			local x = y*u/v
-			local z = y*((3 - 0.75*u)/v - 5)
-
-			-- xyz -> D65 sRGB
-			local r =  7.2914074*x - 1.5372080*y - 0.4986286*z
-			local g = -2.1800940*x + 1.8757561*y + 0.0415175*z
-			local b =  0.1253477*x - 0.2040211*y + 1.0569959*z
-
-			-- clamp minimum sRGB component
-			if r < 0 and r < g and r < b then
-				r, g, b = 0, g - r, b - r
-			elseif g < 0 and g < b then
-				r, g, b = r - g, 0, b - g
-			elseif b < 0 then
-				r, g, b = r - b, g - b, 0
-			end
-
-			-- gamma correction from D65
-			-- clamp to avoid undesirable overflow wrapping behavior on certain properties (e.g. BasePart.Color)
-			return Color3.new(
-				min(r < 3.1306684425e-3 and 12.92*r or 1.055*r^(1/2.4) - 0.055, 1),
-				min(g < 3.1306684425e-3 and 12.92*g or 1.055*g^(1/2.4) - 0.055, 1),
-				min(b < 3.1306684425e-3 and 12.92*b or 1.055*b^(1/2.4) - 0.055, 1)
+			return ColorSequence.new(
+				luvToRgb{value[1], value[2], value[3]},
+				luvToRgb{value[4], value[5], value[6]}
 			)
 		end,
 	},
@@ -425,9 +448,9 @@ function spr.target(instance, dampingRatio, frequency, properties)
 		if STRICT_TYPES and typeof(propTarget) ~= typeof(propValue) then
 			error(
 				("bad property %s to spr.target (%s expected, got %s)"):format(
-					propName,
-					typeof(propValue),
-					typeof(propTarget)
+				propName,
+				typeof(propValue),
+				typeof(propTarget)
 				),
 				2
 			)
