@@ -381,10 +381,6 @@ RunService.Heartbeat:Connect(function(dt)
 end)
 
 local function assertType(argNum, fnName, expectedType, value)
-	if not STRICT_TYPES then
-		return
-	end
-
 	if not expectedType:find(typeof(value)) then
 		error(
 			("bad argument #%d to %s (%s expected, got %s)"):format(
@@ -401,10 +397,12 @@ end
 local spr = {}
 
 function spr.target(instance, dampingRatio, frequency, properties)
-	assertType(1, "spr.target", "Instance", instance)
-	assertType(2, "spr.target", "number", dampingRatio)
-	assertType(3, "spr.target", "number", frequency)
-	assertType(4, "spr.target", "table", properties)
+	if STRICT_TYPES then
+		assertType(1, "spr.target", "Instance", instance)
+		assertType(2, "spr.target", "number", dampingRatio)
+		assertType(3, "spr.target", "number", frequency)
+		assertType(4, "spr.target", "table", properties)
+	end
 
 	if dampingRatio ~= dampingRatio or dampingRatio < 0 then
 		error(("expected damping ratio >= 0; got %.2f"):format(dampingRatio), 2)
@@ -454,8 +452,10 @@ function spr.target(instance, dampingRatio, frequency, properties)
 end
 
 function spr.stop(instance, property)
-	assertType(1, "spr.stop", "Instance", instance)
-	assertType(2, "spr.stop", "string|nil", property)
+	if STRICT_TYPES then
+		assertType(1, "spr.stop", "Instance", instance)
+		assertType(2, "spr.stop", "string|nil", property)
+	end
 
 	if property then
 		local state = springStates[instance]
