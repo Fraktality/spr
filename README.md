@@ -11,7 +11,7 @@ spr.target(frame, 0.6, 1, {
 ```
 
 ## Features
-#### A small, easy to use API
+#### A small, easy-to-use API
 - spr is easy enough for designers and learning programmers to understand.
 - spr only needs a target value and motion parameters. It handles all other aspects of animation automatically.
 
