@@ -13,7 +13,7 @@ spr.target(frame, 0.6, 1, {
 ## Features
 #### A small, easy to use API
 - spr is easy enough for designers and learning programmers to understand.
-- spr only needs a target value and motion parameters. It handles all other aspects of animation automatically and correctly, from interaction with the Roblox task scheduler to datatype-specific interpolation.
+- spr only needs a target value and motion parameters. It handles all other aspects of animation automatically.
 
 #### Easy-to-tune motion
 - Motion is defined by *frequency* and *damping ratio*.
@@ -48,13 +48,13 @@ Damping ratio and frequency can be [visualized here.](https://www.desmos.com/cal
 
 ## API
 
-### spr.target
+### `spr.target`
 ```lua
 spr.target(
    Instance obj,
    number dampingRatio,
    number undampedFrequency,
-   table<string, Variant> targetProperties)
+   table<string, any> targetProperties)
 ```
 
 Animates the given properties towardes the target values, given damping ratio and frequency values.
@@ -93,7 +93,7 @@ spr.target(frame, 0.6, 1, {
 })
 ```
 
-### spr.stop
+### `spr.stop`
 ```lua
 spr.stop(
    Instance obj[,
@@ -130,6 +130,20 @@ spr.stop(frame)
 -- spr is no longer animating Position or Size
 ```
 
+## Type support
+
+spr supports a subset of Roblox and native Luau types for which interpolation makes sense.
+Currently, those are:
+
+- `boolean`
+- `number`
+- `NumberRange`
+- `UDim`
+- `UDim2`
+- `Vector2`
+- `Vector3`
+- `ColorSequence`
+
 ## Setup
 
 spr is a single-module library.
@@ -139,8 +153,3 @@ spr is a single-module library.
 3. Follow the above code examples to get started with the API.
 
 Documentation on how to use ModuleScripts can be found [here.](https://developer.roblox.com/en-us/api-reference/class/ModuleScript)
-
-### roblox-ts
-
-roblox-ts bindings for spr can be installed [here.](https://www.npmjs.com/package/@rbxts/spr)
-
