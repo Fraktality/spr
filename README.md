@@ -5,8 +5,8 @@ Springs are a powerful model for describing fluid, physically-based animations.
 ```lua
 local spr = require(game.ReplicatedStorage.spr)
 
-spr.target(frame, 0.6, 1, {
-    Size = UDim2.fromOffset(400, 400)
+spr.target(part, 0.5, 2, {
+    CFrame = CFrame.new(0, 10, 0)
 })
 ```
 
