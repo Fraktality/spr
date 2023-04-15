@@ -136,13 +136,15 @@ spr supports a subset of Roblox and native Luau types for which interpolation ma
 Currently, those are:
 
 - `boolean`
+- `CFrame`
+- `Color3`
+- `ColorSequence`
 - `number`
 - `NumberRange`
 - `UDim`
 - `UDim2`
 - `Vector2`
 - `Vector3`
-- `ColorSequence`
 
 ## Setup
 
