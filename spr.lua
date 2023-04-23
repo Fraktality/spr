@@ -33,6 +33,8 @@
 local STRICT_RUNTIME_TYPES = true -- assert on parameter and property type mismatch
 local SLEEP_OFFSET_SQ_LIMIT = (1/3840)^2 -- square of the offset sleep limit
 local SLEEP_VELOCITY_SQ_LIMIT = 1e-2^2 -- square of the velocity sleep limit
+local SLEEP_ROTATION_OFFSET = math.rad(0.01) -- rad
+local SLEEP_ROTATION_VELOCITY = math.rad(0.1) -- rad/s
 local EPS = 1e-5 -- epsilon for stability checks around pathological frequency/damping values
 local AXIS_MATRIX_EPS = 1e-6 -- epsilon for converting from axis-angle to matrix
 
@@ -83,7 +85,7 @@ type LinearSpring<T> = typeof(setmetatable({} :: {
 
 do
 	LinearSpring.__index = LinearSpring
-	
+
 	function LinearSpring.new<T>(dampingRatio: number, frequency: number, pos: T, rawGoal: T, typedat)
 		local linearPos = typedat.toIntermediate(pos)
 		return setmetatable(
@@ -104,7 +106,7 @@ do
 		self.rawGoal = goal
 		self.g = self.typedat.toIntermediate(goal)
 	end
-	
+
 	function LinearSpring.setDampingRatio<T>(self: LinearSpring<T>, dampingRatio: number)
 		self.d = dampingRatio
 	end
@@ -124,7 +126,7 @@ do
 
 		return true
 	end
-	
+
 	function LinearSpring.step<T>(self: LinearSpring<T>, dt: number)
 		-- Advance the spring simulation by dt seconds.
 		-- Take the damped harmonic oscillator ODE:
@@ -241,6 +243,11 @@ type RotationSpring = typeof(setmetatable({} :: {
 do
 	RotationSpring.__index = RotationSpring
 
+	local function angleBetween(c0: CFrame, c1: CFrame)
+		local _, angle = (c1:ToObjectSpace(c0)):ToAxisAngle()
+		return math.abs(angle)
+	end
+
 	local function matrixToAxis(m: CFrame)
 		local axis, angle = m:ToAxisAngle()
 		return axis*angle
@@ -253,11 +260,8 @@ do
 		end
 		return CFrame.identity
 	end
-	
+
 	function RotationSpring.new(d: number, f: number, p: CFrame, g: CFrame)
-		assert(p.Position == Vector3.zero)
-		assert(g.Position == Vector3.zero)
-		
 		return setmetatable(
 			{
 				d = d,
@@ -269,9 +273,8 @@ do
 			RotationSpring
 		)
 	end
-	
+
 	function RotationSpring.setGoal(self: RotationSpring, value: CFrame)
-		assert(value.Position == Vector3.zero)
 		self.g = value
 	end
 
@@ -281,6 +284,12 @@ do
 
 	function RotationSpring.setFrequency(self: RotationSpring, frequency: number)
 		self.f = frequency
+	end
+
+	function RotationSpring.canSleep(self: RotationSpring)
+		local sleepP = angleBetween(self.p, self.g) < SLEEP_ROTATION_OFFSET
+		local sleepV = self.v.Magnitude < SLEEP_ROTATION_VELOCITY
+		return sleepP and sleepV
 	end
 
 	function RotationSpring.step(self: RotationSpring, dt: number): CFrame
@@ -313,7 +322,7 @@ do
 
 			pt = axisToMatrix((offset*(i + z*d) + v0*y)*decay)*g
 			vt = (v0*(i - z*d) - offset*(z*f))*decay
-			
+
 		else -- overdamped
 			local c = sqrt(d*d - 1)
 
@@ -389,7 +398,7 @@ do
 	end
 
 	function CFrameSpring:canSleep()
-		return self._position:canSleep()
+		return self._position:canSleep() and self._rotation:canSleep()
 	end
 
 	function CFrameSpring:step(dt): CFrame
@@ -632,7 +641,7 @@ do
 			)
 		end
 	end
-	
+
 	function spr.target(instance: Instance, dampingRatio: number, frequency: number, properties: {[string]: any})
 		if STRICT_RUNTIME_TYPES then
 			assertType(1, "spr.target", "Instance", instance)
