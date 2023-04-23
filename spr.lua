@@ -34,6 +34,7 @@ local STRICT_RUNTIME_TYPES = true -- assert on parameter and property type misma
 local SLEEP_OFFSET_SQ_LIMIT = (1/3840)^2 -- square of the offset sleep limit
 local SLEEP_VELOCITY_SQ_LIMIT = 1e-2^2 -- square of the velocity sleep limit
 local EPS = 1e-5 -- epsilon for stability checks around pathological frequency/damping values
+local AXIS_MATRIX_EPS = 1e-6 -- epsilon for converting from axis-angle to matrix
 
 local RunService = game:GetService("RunService")
 
@@ -247,7 +248,7 @@ do
 
 	local function axisToMatrix(v: Vector3)
 		local mag = v.Magnitude
-		if mag > EPS then
+		if mag > AXIS_MATRIX_EPS then
 			return CFrame.fromAxisAngle(v.Unit, mag)
 		end
 		return CFrame.identity
