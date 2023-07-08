@@ -21,7 +21,7 @@ spr.target(
    targetProperties: {[string]: any})
 ```
 
-Animates the given properties towardes the target values given a set of spring parameters.
+Animates the given properties towardes the target values.
 
 ### `spr.completed`
 ```lua
