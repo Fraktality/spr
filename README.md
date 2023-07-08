@@ -51,23 +51,15 @@ Damping ratio and frequency can be [visualized here.](https://www.desmos.com/cal
 ### `spr.target`
 ```lua
 spr.target(
-   Instance obj,
-   number dampingRatio,
-   number undampedFrequency,
-   table<string, any> targetProperties)
+   obj: Instance,
+   dampingRatio: number,
+   undampedFrequency: number,
+   targetProperties: {[string]: any})
 ```
 
 Animates the given properties towardes the target values, given damping ratio and frequency values.
 
 #### Examples
-
-```lua
--- damping ratio 1 (critically damped), frequency 4
--- frame quickly moves to the middle of the screen without overshooting
-spr.target(frame, 1, 4, {
-    Position = UDim2.fromScale(0.5, 0.5)
-})
-```
 
 ```lua
 -- damping ratio 1 (critically damped), frequency 1
@@ -85,19 +77,23 @@ spr.target(frame, 0.6, 4, {
 })
 ```
 
+### `spr.completed`
 ```lua
--- damping ratio 0.6 (underdamped), frequency 1
--- frame slowly moves to the middle of the screen, overshoots, and wobbles around the target
-spr.target(frame, 0.6, 1, {
-    Position = UDim2.fromScale(0.5, 0.5)
-})
+spr.completed(obj: Instance, callback: ()->())
+```
+
+Registers a callback function that will be called the next time the instance stops animating. The callback is only called once.
+This is useful for tracking instance lifetime, such as destroying a part when it becomes invisible.
+
+#### Example
+```lua
+spr.target(workspace.Part, 1, 1, {Transparency = 1})
+spr.completed(workspace.Part, function() part:Destroy end)
 ```
 
 ### `spr.stop`
 ```lua
-spr.stop(
-   Instance obj[,
-   string property])
+spr.stop(obj: Instance, property: string?)
 ```
 
 Stops animations for a particular property.
