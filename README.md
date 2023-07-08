@@ -97,8 +97,9 @@ spr is a single-module library.
 
 1. Paste the source of [spr.lua](https://raw.githubusercontent.com/Fraktality/spr/master/spr.lua) into a new ModuleScript
 2. Require the ModuleScript with `local spr = require(<path to spr>)`
-3. Follow the above code examples to get started with the API.
+3. Follow the below code examples to get started with the API.
 
+Documentation on how to use ModuleScripts can be found [here.](https://developer.roblox.com/en-us/api-reference/class/ModuleScript)
 
 ## Examples
 
@@ -154,4 +155,3 @@ wait(1)
 spr.stop(frame)
 -- spr is no longer animating Position or Size
 ```
-Documentation on how to use ModuleScripts can be found [here.](https://developer.roblox.com/en-us/api-reference/class/ModuleScript)
