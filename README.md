@@ -10,6 +10,35 @@ spr.target(part, 0.5, 2, {
 })
 ```
 
+## API
+
+### `spr.target`
+```lua
+spr.target(
+   obj: Instance,
+   dampingRatio: number,
+   undampedFrequency: number,
+   targetProperties: {[string]: any})
+```
+
+Animates the given properties towardes the target values given a set of spring parameters.
+
+### `spr.completed`
+```lua
+spr.completed(obj: Instance, callback: ()->())
+```
+
+Registers a callback function that will be called the next time the instance stops animating. The callback is only called once.
+This is useful for tracking instance lifetime, such as destroying a part when it becomes invisible.
+
+### `spr.stop`
+```lua
+spr.stop(obj: Instance, property: string?)
+```
+
+Stops animations for a particular property.
+If a property is not specified, all properties belonging to the instance will stop animating.
+
 ## Features
 #### A small, easy-to-use API
 - spr is easy enough for designers and learning programmers to understand.
@@ -46,20 +75,34 @@ Underdamping is recommended for animations that need extra pop.
 
 Damping ratio and frequency can be [visualized here.](https://www.desmos.com/calculator/rzvw27ljh9)
 
-## API
+## Type support
+
+spr supports a subset of Roblox and native Luau types for which interpolation makes sense.
+Currently, those are:
+
+- `boolean`
+- `CFrame`
+- `Color3`
+- `ColorSequence`
+- `number`
+- `NumberRange`
+- `UDim`
+- `UDim2`
+- `Vector2`
+- `Vector3`
+
+## Setup
+
+spr is a single-module library.
+
+1. Paste the source of [spr.lua](https://raw.githubusercontent.com/Fraktality/spr/master/spr.lua) into a new ModuleScript
+2. Require the ModuleScript with `local spr = require(<path to spr>)`
+3. Follow the above code examples to get started with the API.
+
+
+## Examples
 
 ### `spr.target`
-```lua
-spr.target(
-   obj: Instance,
-   dampingRatio: number,
-   undampedFrequency: number,
-   targetProperties: {[string]: any})
-```
-
-Animates the given properties towardes the target values, given damping ratio and frequency values.
-
-#### Examples
 
 ```lua
 -- damping ratio 1 (critically damped), frequency 1
@@ -78,28 +121,14 @@ spr.target(frame, 0.6, 4, {
 ```
 
 ### `spr.completed`
-```lua
-spr.completed(obj: Instance, callback: ()->())
-```
 
-Registers a callback function that will be called the next time the instance stops animating. The callback is only called once.
-This is useful for tracking instance lifetime, such as destroying a part when it becomes invisible.
-
-#### Example
 ```lua
 spr.target(workspace.Part, 1, 1, {Transparency = 1})
 spr.completed(workspace.Part, function() part:Destroy end)
 ```
 
 ### `spr.stop`
-```lua
-spr.stop(obj: Instance, property: string?)
-```
 
-Stops animations for a particular property.
-If a property is not specified, all properties belonging to the instance will stop animating.
-
-#### Examples
 ```lua
 spr.target(frame, 0.6, 1, {
     Position = UDim2.fromScale(1, 1)
@@ -125,29 +154,4 @@ wait(1)
 spr.stop(frame)
 -- spr is no longer animating Position or Size
 ```
-
-## Type support
-
-spr supports a subset of Roblox and native Luau types for which interpolation makes sense.
-Currently, those are:
-
-- `boolean`
-- `CFrame`
-- `Color3`
-- `ColorSequence`
-- `number`
-- `NumberRange`
-- `UDim`
-- `UDim2`
-- `Vector2`
-- `Vector3`
-
-## Setup
-
-spr is a single-module library.
-
-1. Paste the source of [spr.lua](https://raw.githubusercontent.com/Fraktality/spr/master/spr.lua) into a new ModuleScript
-2. Require the ModuleScript with `local spr = require(<path to spr>)`
-3. Follow the above code examples to get started with the API.
-
 Documentation on how to use ModuleScripts can be found [here.](https://developer.roblox.com/en-us/api-reference/class/ModuleScript)
