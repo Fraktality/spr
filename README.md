@@ -134,8 +134,8 @@ spr.stop(frame)
 ### `spr.completed`
 ```lua
 spr.completed(
-   Instance obj[,
-   callback function])
+   Instance obj,
+   function callback)
 ```
 
 Sets up a function to run, after the animation is completed.
