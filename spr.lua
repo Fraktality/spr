@@ -607,6 +607,7 @@ local typeMetadata = {
 
 -- Frame loop
 local springStates: {[Instance]: {[string]: any}} = {} -- {[instance] = {[property] = spring}
+local completedCallbacks: {[Instance]: {()->()}} = {}
 
 RunService.Heartbeat:Connect(function(dt)
 	for instance, state in springStates do
@@ -621,6 +622,18 @@ RunService.Heartbeat:Connect(function(dt)
 
 		if not next(state) then
 			springStates[instance] = nil
+
+			-- trigger completed callbacks when all properties finish animating
+			local callbackList = completedCallbacks[instance]
+			if callbackList then
+				-- flush callback list before we run any callbacks in case
+				-- one of the callbacks recursively adds another callback
+				completedCallbacks[instance] = nil
+
+				for _, callback in callbackList do
+					task.spawn(callback)
+				end
+			end
 		end
 	end
 end)
@@ -719,6 +732,20 @@ do
 			end
 		else
 			springStates[instance] = nil
+		end
+	end
+
+	function spr.completed(instance: Instance, callback: ()->())
+		if STRICT_RUNTIME_TYPES then
+			assertType(1, "spr.completed", "Instance", instance)
+			assertType(2, "spr.completed", "function", callback)
+		end
+
+		local callbackList = completedCallbacks[instance]
+		if callbackList then
+			table.insert(callbackList, callback)
+		else
+			completedCallbacks[instance] = {callback}
 		end
 	end
 end
