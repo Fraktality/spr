@@ -130,6 +130,29 @@ spr.stop(frame)
 -- spr is no longer animating Position or Size
 ```
 
+
+### `spr.completed`
+```lua
+spr.completed(
+   Instance obj[,
+   callback function])
+```
+
+Sets up a function to run, after the animation is completed.
+
+#### Example
+```lua
+spr.target(frame, 0.6, 1, {
+    Position = UDim2.fromScale(1, 1)
+})
+-- spr is now animating frame.Position
+
+spr.completed(frame, function()
+    print("Completed")
+end)
+-- prints "Completed" to the console after the animation is completed
+```
+
 ## Type support
 
 spr supports a subset of Roblox and native Luau types for which interpolation makes sense.
