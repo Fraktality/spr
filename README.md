@@ -3,8 +3,6 @@ Springs are a powerful model for describing fluid, physically-based animations.
 **spr** is a spring-based motion library for Roblox.
 
 ```lua
-local spr = require(game.ReplicatedStorage.spr)
-
 spr.target(part, 0.5, 2, {
     CFrame = CFrame.new(0, 10, 0)
 })
