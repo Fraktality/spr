@@ -605,6 +605,35 @@ local typeMetadata = {
 	}
 }
 
+type PropertyOverride = {
+	[string]: {
+		class: string,
+		get: (any)->(),
+		set: (any, any)->(),
+	}
+}
+
+local PSEUDO_PROPERTIES: PropertyOverride = {
+	Pivot = {
+		class = "PVInstance",
+		get = function(inst: PVInstance)
+			return inst:GetPivot()
+		end,
+		set = function(inst: PVInstance, value: CFrame)
+			inst:PivotTo(value)
+		end
+	},
+	Scale = {
+		class = "Model",
+		get = function(inst: Model)
+			return inst:GetScale()
+		end,
+		set = function(inst: Model, value: number)
+			inst:ScaleTo(value)
+		end
+	}
+}
+
 -- Frame loop
 local springStates: {[Instance]: {[string]: any}} = {} -- {[instance] = {[property] = spring}
 local completedCallbacks: {[Instance]: {()->()}} = {}
@@ -612,11 +641,22 @@ local completedCallbacks: {[Instance]: {()->()}} = {}
 RunService.Heartbeat:Connect(function(dt)
 	for instance, state in springStates do
 		for propName, spring in state do
-			if spring:canSleep() then
-				state[propName] = nil
-				(instance :: any)[propName] = spring.rawGoal
+			local override = PSEUDO_PROPERTIES[propName]
+			
+			if override and instance:IsA(override.class) then
+				if spring:canSleep() then
+					state[propName] = nil
+					override.set(instance, spring.rawGoal)
+				else
+					override.set(instance, spring:step(dt))
+				end
 			else
-				(instance :: any)[propName] = spring:step(dt)
+				if spring:canSleep() then
+					state[propName] = nil
+					(instance :: any)[propName] = spring.rawGoal
+				else
+					(instance :: any)[propName] = spring:step(dt)
+				end
 			end
 		end
 
@@ -670,7 +710,13 @@ do
 		end
 
 		for propName, propTarget in properties do
-			local propValue = (instance :: any)[propName]
+			local propValue
+			local override = PSEUDO_PROPERTIES[propName]
+			if override and instance:IsA(override.class) then
+				propValue = override.get(instance)
+			else
+				propValue = (instance :: any)[propName]
+			end
 
 			if STRICT_RUNTIME_TYPES and typeof(propTarget) ~= typeof(propValue) then
 				error(`bad property {propName} to spr.target ({typeof(propValue)} expected, got {typeof(propTarget)})`, 2)
