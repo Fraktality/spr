@@ -643,15 +643,7 @@ local spr = {}
 do
 	local function assertType(argNum: number, fnName: string, expectedType: string, value: unknown)
 		if not expectedType:find(typeof(value)) then
-			error(
-				("bad argument #%d to %s (%s expected, got %s)"):format(
-					argNum,
-					fnName,
-					expectedType,
-					typeof(value)
-				),
-				3
-			)
+			error(`bad argument #{argNum} to {fnName} ({expectedType} expected, got {typeof(value)})`, 3)
 		end
 	end
 
@@ -681,14 +673,7 @@ do
 			local propValue = (instance :: any)[propName]
 
 			if STRICT_RUNTIME_TYPES and typeof(propTarget) ~= typeof(propValue) then
-				error(
-					("bad property %s to spr.target (%s expected, got %s)"):format(
-					propName,
-					typeof(propValue),
-					typeof(propTarget)
-					),
-					2
-				)
+				error(`bad property {propName} to spr.target ({typeof(propValue)} expected, got {typeof(propTarget)})`, 2)
 			end
 
 			-- Special case infinite frequency for an instantaneous change
