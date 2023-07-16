@@ -678,106 +678,105 @@ RunService.Heartbeat:Connect(function(dt)
 	end
 end)
 
+local function assertType(argNum: number, fnName: string, expectedType: string, value: unknown)
+	if not expectedType:find(typeof(value)) then
+		error(`bad argument #{argNum} to {fnName} ({expectedType} expected, got {typeof(value)})`, 3)
+	end
+end
+
 -- API
 local spr = {}
-do
-	local function assertType(argNum: number, fnName: string, expectedType: string, value: unknown)
-		if not expectedType:find(typeof(value)) then
-			error(`bad argument #{argNum} to {fnName} ({expectedType} expected, got {typeof(value)})`, 3)
-		end
+
+function spr.target(instance: Instance, dampingRatio: number, frequency: number, properties: {[string]: any})
+	if STRICT_RUNTIME_TYPES then
+		assertType(1, "spr.target", "Instance", instance)
+		assertType(2, "spr.target", "number", dampingRatio)
+		assertType(3, "spr.target", "number", frequency)
+		assertType(4, "spr.target", "table", properties)
 	end
 
-	function spr.target(instance: Instance, dampingRatio: number, frequency: number, properties: {[string]: any})
-		if STRICT_RUNTIME_TYPES then
-			assertType(1, "spr.target", "Instance", instance)
-			assertType(2, "spr.target", "number", dampingRatio)
-			assertType(3, "spr.target", "number", frequency)
-			assertType(4, "spr.target", "table", properties)
+	if dampingRatio ~= dampingRatio or dampingRatio < 0 then
+		error(("expected damping ratio >= 0; got %.2f"):format(dampingRatio), 2)
+	end
+
+	if frequency ~= frequency or frequency < 0 then
+		error(("expected undamped frequency >= 0; got %.2f"):format(frequency), 2)
+	end
+
+	local state = springStates[instance]
+	if not state then
+		state = {}
+		springStates[instance] = state
+	end
+
+	for propName, propTarget in properties do
+		local propValue
+		local override = PSEUDO_PROPERTIES[propName]
+		if override and instance:IsA(override.class) then
+			propValue = override.get(instance)
+		else
+			propValue = (instance :: any)[propName]
 		end
 
-		if dampingRatio ~= dampingRatio or dampingRatio < 0 then
-			error(("expected damping ratio >= 0; got %.2f"):format(dampingRatio), 2)
+		if STRICT_RUNTIME_TYPES and typeof(propTarget) ~= typeof(propValue) then
+			error(`bad property {propName} to spr.target ({typeof(propValue)} expected, got {typeof(propTarget)})`, 2)
 		end
 
-		if frequency ~= frequency or frequency < 0 then
-			error(("expected undamped frequency >= 0; got %.2f"):format(frequency), 2)
+		-- Special case infinite frequency for an instantaneous change
+		if frequency == math.huge then
+			(instance :: any)[propName] = propTarget
+			state[propName] = nil
+			continue
 		end
 
+		local spring = state[propName]
+		if not spring then
+			local md = typeMetadata[typeof(propTarget)]
+			if not md then
+				error("unsupported type: " .. typeof(propTarget), 2)
+			end
+
+			spring = md.springType(dampingRatio, frequency, propValue, propTarget, md)
+			state[propName] = spring
+		end
+
+		spring:setGoal(propTarget)
+		spring:setDampingRatio(dampingRatio)
+		spring:setFrequency(frequency)
+	end
+
+	if not next(state) then
+		springStates[instance] = nil
+	end
+end
+
+function spr.stop(instance: Instance, property: string?)
+	if STRICT_RUNTIME_TYPES then
+		assertType(1, "spr.stop", "Instance", instance)
+		assertType(2, "spr.stop", "string|nil", property)
+	end
+
+	if property then
 		local state = springStates[instance]
-		if not state then
-			state = {}
-			springStates[instance] = state
+		if state then
+			state[property] = nil
 		end
+	else
+		springStates[instance] = nil
+	end
+end
 
-		for propName, propTarget in properties do
-			local propValue
-			local override = PSEUDO_PROPERTIES[propName]
-			if override and instance:IsA(override.class) then
-				propValue = override.get(instance)
-			else
-				propValue = (instance :: any)[propName]
-			end
-
-			if STRICT_RUNTIME_TYPES and typeof(propTarget) ~= typeof(propValue) then
-				error(`bad property {propName} to spr.target ({typeof(propValue)} expected, got {typeof(propTarget)})`, 2)
-			end
-
-			-- Special case infinite frequency for an instantaneous change
-			if frequency == math.huge then
-				(instance :: any)[propName] = propTarget
-				state[propName] = nil
-				continue
-			end
-
-			local spring = state[propName]
-			if not spring then
-				local md = typeMetadata[typeof(propTarget)]
-				if not md then
-					error("unsupported type: " .. typeof(propTarget), 2)
-				end
-
-				spring = md.springType(dampingRatio, frequency, propValue, propTarget, md)
-				state[propName] = spring
-			end
-
-			spring:setGoal(propTarget)
-			spring:setDampingRatio(dampingRatio)
-			spring:setFrequency(frequency)
-		end
-
-		if not next(state) then
-			springStates[instance] = nil
-		end
+function spr.completed(instance: Instance, callback: ()->())
+	if STRICT_RUNTIME_TYPES then
+		assertType(1, "spr.completed", "Instance", instance)
+		assertType(2, "spr.completed", "function", callback)
 	end
 
-	function spr.stop(instance: Instance, property: string?)
-		if STRICT_RUNTIME_TYPES then
-			assertType(1, "spr.stop", "Instance", instance)
-			assertType(2, "spr.stop", "string|nil", property)
-		end
-
-		if property then
-			local state = springStates[instance]
-			if state then
-				state[property] = nil
-			end
-		else
-			springStates[instance] = nil
-		end
-	end
-
-	function spr.completed(instance: Instance, callback: ()->())
-		if STRICT_RUNTIME_TYPES then
-			assertType(1, "spr.completed", "Instance", instance)
-			assertType(2, "spr.completed", "function", callback)
-		end
-
-		local callbackList = completedCallbacks[instance]
-		if callbackList then
-			table.insert(callbackList, callback)
-		else
-			completedCallbacks[instance] = {callback}
-		end
+	local callbackList = completedCallbacks[instance]
+	if callbackList then
+		table.insert(callbackList, callback)
+	else
+		completedCallbacks[instance] = {callback}
 	end
 end
 
