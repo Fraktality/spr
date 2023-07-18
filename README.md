@@ -1,11 +1,12 @@
 # ☄️ spr
-Springs are a powerful model for describing fluid, physically-based animations.
-**spr** is a spring-based motion library for Roblox.
+
+Springs offer a powerful approach to describing fluid, physically-based animations.<br/>
+**spr** is a high-performance and user-friendly motion library for Roblox based on springs.
+
+Animations are a single line of code:
 
 ```lua
-spr.target(part, 0.5, 2, {
-    CFrame = CFrame.new(0, 10, 0)
-})
+spr.target(part, springDamping, springFrequency, { CFrame = CFrame.new(0, 10, 0) })
 ```
 
 ## API
