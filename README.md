@@ -1,6 +1,6 @@
 # ☄️ spr
 
-Springs are powerful approach to describing fluid, physically-based animation.<br/>
+Springs are powerful approach for describing fluid, physically-based animation.<br/>
 **spr** is a high-performance and user-friendly motion library for Roblox based on springs.
 
 Animations are a single line of code:
