@@ -634,6 +634,24 @@ local PSEUDO_PROPERTIES: PropertyOverride = {
 	}
 }
 
+local function getProperty(instance: Instance, property: string): any
+	local override = PSEUDO_PROPERTIES[property]
+	if override and instance:IsA(override.class) then
+		return override.get(instance)
+	else
+		return (instance :: any)[property]
+	end
+end
+
+local function setProperty(instance: Instance, property: string, value: unknown)
+	local override = PSEUDO_PROPERTIES[property]
+	if override and instance:IsA(override.class) then
+		override.set(instance, value)
+	else
+		(instance :: any)[property] = value
+	end
+end
+
 -- Frame loop
 local springStates: {[Instance]: {[string]: any}} = {} -- {[instance] = {[property] = spring}
 local completedCallbacks: {[Instance]: {()->()}} = {}
@@ -641,22 +659,11 @@ local completedCallbacks: {[Instance]: {()->()}} = {}
 RunService.Heartbeat:Connect(function(dt)
 	for instance, state in springStates do
 		for propName, spring in state do
-			local override = PSEUDO_PROPERTIES[propName]
-			
-			if override and instance:IsA(override.class) then
-				if spring:canSleep() then
-					state[propName] = nil
-					override.set(instance, spring.rawGoal)
-				else
-					override.set(instance, spring:step(dt))
-				end
+			if spring:canSleep() then
+				state[propName] = nil
+				setProperty(instance, propName, spring.rawGoal)
 			else
-				if spring:canSleep() then
-					state[propName] = nil
-					(instance :: any)[propName] = spring.rawGoal
-				else
-					(instance :: any)[propName] = spring:step(dt)
-				end
+				setProperty(instance, propName, spring:step(dt))
 			end
 		end
 
@@ -710,13 +717,7 @@ function spr.target(instance: Instance, dampingRatio: number, frequency: number,
 	end
 
 	for propName, propTarget in properties do
-		local propValue
-		local override = PSEUDO_PROPERTIES[propName]
-		if override and instance:IsA(override.class) then
-			propValue = override.get(instance)
-		else
-			propValue = (instance :: any)[propName]
-		end
+		local propValue = getProperty(instance, propName)
 
 		if STRICT_RUNTIME_TYPES and typeof(propTarget) ~= typeof(propValue) then
 			error(`bad property {propName} to spr.target ({typeof(propValue)} expected, got {typeof(propTarget)})`, 2)
@@ -724,7 +725,7 @@ function spr.target(instance: Instance, dampingRatio: number, frequency: number,
 
 		-- Special case infinite frequency for an instantaneous change
 		if frequency == math.huge then
-			(instance :: any)[propName] = propTarget
+			setProperty(instance, propName, propTarget)
 			state[propName] = nil
 			continue
 		end
