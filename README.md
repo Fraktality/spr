@@ -9,6 +9,25 @@ Animations are a single line of code:
 spr.target(part, springDamping, springFrequency, { CFrame = CFrame.new(0, 10, 0) })
 ```
 
+## Features
+#### A small, easy-to-use API
+- spr is easy enough for designers and learning programmers to understand.
+- spr only needs a target value and motion parameters. It handles all other aspects of animation automatically.
+
+#### Easy-to-tune motion
+- Motion is defined by *frequency* and *damping ratio*.
+- Frequency and damping ratio are easy to visualize without running the game. Tuning usually only takes one try.
+
+#### A robust spring model
+- spr's robust analytical motion solver handles a wide variety of spring parameters that cause other spring solvers to fail.
+- If spr is given a nonconverging set of motion parameters, it will throw a clear error describing what is wrong and how to fix it.
+
+#### Tight integration with Roblox datatypes
+- spr animates directly over Roblox properties without additional layers of indirection.
+- spr performs runtime type checking, providing stronger typing than Roblox instance property setters.
+- spr knows how to animate in the ideal space for each datatype.
+    - For example, spr will automatically animate [Color3](https://developer.roblox.com/en-us/api-reference/datatype/Color3) values in perceptually-uniform [CIELUV space.](https://en.wikipedia.org/wiki/CIELUV)
+
 ## API
 
 ### `spr.target`
@@ -37,25 +56,6 @@ spr.stop(obj: Instance, property: string?)
 
 Stops animations for a particular property.
 If a property is not specified, all properties belonging to the instance will stop animating.
-
-## Features
-#### A small, easy-to-use API
-- spr is easy enough for designers and learning programmers to understand.
-- spr only needs a target value and motion parameters. It handles all other aspects of animation automatically.
-
-#### Easy-to-tune motion
-- Motion is defined by *frequency* and *damping ratio*.
-- Frequency and damping ratio are easy to visualize without running the game. Tuning usually only takes one try.
-
-#### A robust spring model
-- spr's robust analytical motion solver handles a wide variety of spring parameters that cause other spring solvers to fail.
-- If spr is given a nonconverging set of motion parameters, it will throw a clear error describing what is wrong and how to fix it.
-
-#### Tight integration with Roblox datatypes
-- spr animates directly over Roblox properties without additional layers of indirection.
-- spr performs runtime type checking, providing stronger typing than Roblox instance property setters.
-- spr knows how to animate in the ideal space for each datatype.
-    - For example, spr will automatically animate [Color3](https://developer.roblox.com/en-us/api-reference/datatype/Color3) values in perceptually-uniform [CIELUV space.](https://en.wikipedia.org/wiki/CIELUV)
 
 ## Spring fundamentals
 
@@ -124,7 +124,7 @@ spr.target(frame, 0.6, 4, {
 
 ```lua
 spr.target(workspace.Part, 1, 1, {Transparency = 1})
-spr.completed(workspace.Part, function() part:Destroy end)
+spr.completed(workspace.Part, function() workspace.Part:Destroy() end)
 ```
 
 ### `spr.stop`
@@ -135,7 +135,7 @@ spr.target(frame, 0.6, 1, {
 })
 -- spr is now animating frame.Position
 
-wait(1)
+task.wait(1)
 
 spr.stop(frame, "Position")
 -- spr is no longer animating frame.Position
@@ -149,7 +149,7 @@ spr.target(frame, 0.6, 1, {
 })
 -- spr is now animating Position and Size
 
-wait(1)
+task.wait(1)
 
 spr.stop(frame)
 -- spr is no longer animating Position or Size
