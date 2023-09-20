@@ -629,7 +629,7 @@ local PSEUDO_PROPERTIES: PropertyOverride = {
 			return inst:GetScale()
 		end,
 		set = function(inst: Model, value: number)
-			inst:ScaleTo(value)
+			inst:ScaleTo(math.clamp(value, 1e-4, math.huge))
 		end
 	}
 }
