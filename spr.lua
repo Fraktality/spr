@@ -37,6 +37,7 @@ local SLEEP_ROTATION_OFFSET = math.rad(0.01) -- rad
 local SLEEP_ROTATION_VELOCITY = math.rad(0.1) -- rad/s
 local EPS = 1e-5 -- epsilon for stability checks around pathological frequency/damping values
 local AXIS_MATRIX_EPS = 1e-6 -- epsilon for converting from axis-angle to matrix
+local SCALE_TO_EPS = 1e-35 -- epsilon used for clamping ScaleTo calls above 0
 
 local RunService = game:GetService("RunService")
 
@@ -629,7 +630,7 @@ local PSEUDO_PROPERTIES: PropertyOverride = {
 			return inst:GetScale()
 		end,
 		set = function(inst: Model, value: number)
-			inst:ScaleTo(math.clamp(value, 1e-4, math.huge))
+			inst:ScaleTo(math.clamp(value, SCALE_TO_EPS, 2^53))
 		end
 	}
 }
