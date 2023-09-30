@@ -306,8 +306,6 @@ do
 		local vt: Vector3
 
 		if d == 1 then -- critically damped
-			local w = dt*decay
-
 			pt = axisToMatrix((offset*(1 + f*dt) + v0*dt)*decay)*g
 			vt = (v0*(1 - dt*f) - offset*(dt*f*f))*decay
 
