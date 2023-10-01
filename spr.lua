@@ -1,4 +1,5 @@
 --!strict
+--!native
 ---------------------------------------------------------------------
 -- spr - Spring-driven motion library
 --
@@ -38,7 +39,7 @@ local SLEEP_ROTATION_VELOCITY = math.rad(0.1) -- rad/s
 local EPS = 1e-5 -- epsilon for stability checks around pathological frequency/damping values
 local AXIS_MATRIX_EPS = 1e-6 -- epsilon for converting from axis-angle to matrix
 
-local RunService = game:GetService("RunService")
+local RunService: RunService = game:GetService("RunService")
 
 local pi = math.pi
 local exp = math.exp
