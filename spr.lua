@@ -652,10 +652,11 @@ local function setProperty(instance: Instance, property: string, value: unknown)
 end
 
 -- Frame loop
-local springStates: {[Instance]: {[string]: any}} = {} -- {[instance] = {[property] = spring}
+local springStates_other: {[Instance]: {[string]: any}} = {} -- {[instance] = {[property] = spring}
+local springStates_render: {[Instance]: {[string]: any}} = {} -- {[instance] = {[property] = spring}
 local completedCallbacks: {[Instance]: {()->()}} = {}
 
-RunService.Heartbeat:Connect(function(dt)
+local function processSprings(springStates: typeof(springStates_other), dt: number)
 	for instance, state in springStates do
 		for propName, spring in state do
 			if spring:canSleep() then
@@ -682,6 +683,14 @@ RunService.Heartbeat:Connect(function(dt)
 			end
 		end
 	end
+end
+
+RunService.PreSimulation:Connect(function(dt)
+	processSprings(springStates_other, dt)
+end)
+
+RunService.PostSimulation:Connect(function(dt)
+	processSprings(springStates_render, dt)
 end)
 
 local function assertType(argNum: number, fnName: string, expectedType: string, value: unknown)
@@ -708,11 +717,13 @@ function spr.target(instance: Instance, dampingRatio: number, frequency: number,
 	if frequency ~= frequency or frequency < 0 then
 		error(("expected undamped frequency >= 0; got %.2f"):format(frequency), 2)
 	end
+	
+	local targetRecord = (if instance:IsA("Camera") then springStates_render else springStates_other) :: {[Instance]: {[string]: any}}
 
-	local state = springStates[instance]
+	local state = targetRecord[instance]
 	if not state then
 		state = {}
-		springStates[instance] = state
+		targetRecord[instance] = state
 	end
 
 	for propName, propTarget in properties do
@@ -746,7 +757,7 @@ function spr.target(instance: Instance, dampingRatio: number, frequency: number,
 	end
 
 	if not next(state) then
-		springStates[instance] = nil
+		targetRecord[instance] = nil
 	end
 end
 
@@ -757,12 +768,13 @@ function spr.stop(instance: Instance, property: string?)
 	end
 
 	if property then
-		local state = springStates[instance]
+		local state = springStates_other[instance] or springStates_render[instance]
 		if state then
 			state[property] = nil
 		end
 	else
-		springStates[instance] = nil
+		springStates_other[instance] = nil
+		springStates_render[instance] = nil
 	end
 end
 
