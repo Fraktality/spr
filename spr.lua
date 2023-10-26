@@ -790,6 +790,18 @@ function spr.completed(instance: Instance, callback: ()->())
 	else
 		completedCallbacks[instance] = {callback}
 	end
+
+	return function()
+		local callbackList2 = completedCallbacks[instance]
+		local index = table.find(callbackList2, callback)
+		if callbackList2 and index then
+			if #callbackList2 == 1 then
+				completedCallbacks[instance] = nil
+			else
+				table.remove(callbackList2, index)
+			end
+		end
+	end
 end
 
 return table.freeze(spr)
