@@ -3,7 +3,7 @@
 ---------------------------------------------------------------------
 -- spr - Spring-driven motion library
 --
--- Copyright (c) 2023 Fractality. All rights reserved.
+-- Copyright (c) 2024 Fractality. All rights reserved.
 -- Released under the MIT license.
 --
 -- Docs & license can be found at https://github.com/Fraktality/spr
