@@ -211,8 +211,8 @@ do
 		else -- overdamped
 			local c = sqrt(d*d - 1)
 
-			local r1 = -f*(d - c)
-			local r2 = -f*(d + c)
+			local r1 = -f*(d + c)
+			local r2 = -f*(d - c)
 
 			local ec1 = exp(r1*dt)
 			local ec2 = exp(r2*dt)
@@ -325,8 +325,8 @@ do
 		else -- overdamped
 			local c = sqrt(d*d - 1)
 
-			local r1 = -f*(d - c)
-			local r2 = -f*(d + c)
+			local r1 = -f*(d + c)
+			local r2 = -f*(d - c)
 
 			local co2 = (v0 - offset*r1)/(2*f*c)
 			local co1 = offset - co2
