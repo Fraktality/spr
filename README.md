@@ -49,6 +49,8 @@ spr.completed(obj: Instance, callback: ()->())
 Registers a callback function that will be called the next time the instance stops animating. The callback is only called once.
 This is useful for tracking instance lifetime, such as destroying a part when it becomes invisible.
 
+To cancel the callback function, use the function returned from spr.completed, as given in the example below.
+
 ### `spr.stop`
 ```lua
 spr.stop(obj: Instance, property: string?)
@@ -125,6 +127,16 @@ spr.target(frame, 0.6, 4, {
 ```lua
 spr.target(workspace.Part, 1, 1, {Transparency = 1})
 spr.completed(workspace.Part, function() workspace.Part:Destroy() end)
+```
+
+```lua
+spr.target(script.Parent.TextButton, 1, 1, {BackgroundTransparency = 1})
+local cancel = spr.completed(script.Parent.TextButton, function() script.Parent.TextButton:Destroy() end)
+wait(1)
+-- if the background transparency has returned to the initial value (0) by another interaction, cancel the callback
+if script.Parent.TextButton.BackgroundTransparency == 0 then
+    cancel()
+end
 ```
 
 ### `spr.stop`
