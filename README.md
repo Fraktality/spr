@@ -57,6 +57,8 @@ spr.stop(obj: Instance, property: string?)
 Stops animations for a particular property.
 If a property is not specified, all properties belonging to the instance will stop animating.
 
+Additionally, this also cancels any 'completed' callbacks associated to the instance.
+
 ## Spring fundamentals
 
 Damping ratio and undamped frequency are the two properties describing a spring's motion.
