@@ -821,7 +821,7 @@ function spr.stop(instance: Instance, property: string?)
 	end
 	
 	if completedCallbacks[instance] then
-		completedCallbacks[instance] = nil
+		completedCallbacks[instance] = nil 
 	end
 end
 
