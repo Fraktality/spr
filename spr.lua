@@ -819,6 +819,10 @@ function spr.stop(instance: Instance, property: string?)
 		springStates_other[instance] = nil
 		springStates_render[instance] = nil
 	end
+
+	if completedCallbacks[instance] then
+		completedCallbacks[instance] = nil
+	end
 end
 
 function spr.completed(instance: Instance, callback: ()->())
