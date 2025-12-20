@@ -698,6 +698,7 @@ end
 local springStates_other: {[Instance]: {[string]: any}} = {} -- {[instance] = {[property] = spring}
 local springStates_render: {[Instance]: {[string]: any}} = {} -- {[instance] = {[property] = spring}
 local completedCallbacks: {[Instance]: {()->()}} = {}
+local destroyingConnections: {[Instance]: RBXScriptConnection} = {}
 
 local function processSprings(springStates: typeof(springStates_other), dt: number)
 	for instance, state in springStates do
@@ -767,6 +768,15 @@ function spr.target(instance: Instance, dampingRatio: number, frequency: number,
 	if not state then
 		state = {}
 		targetRecord[instance] = state
+
+		if not destroyingConnections[instance] then
+			destroyingConnections[instance] = instance.Destroying:Once(function()
+				springStates_other[instance] = nil
+				springStates_render[instance] = nil
+				completedCallbacks[instance] = nil
+				destroyingConnections[instance] = nil
+			end)
+		end
 	end
 
 	for propName, propTarget in properties do
@@ -801,6 +811,15 @@ function spr.target(instance: Instance, dampingRatio: number, frequency: number,
 
 	if not next(state) then
 		targetRecord[instance] = nil
+
+		local otherRecord = if targetRecord == springStates_render then springStates_other else springStates_render
+		if not otherRecord[instance] then
+			local conn = destroyingConnections[instance]
+			if conn then
+				conn:Disconnect()
+				destroyingConnections[instance] = nil
+			end
+		end
 	end
 end
 
